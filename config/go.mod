@@ -11,8 +11,6 @@ require (
 
 require (
 	github.com/fatih/color v1.14.1 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/injoyai/base v1.0.19 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

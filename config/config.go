@@ -1,61 +1,88 @@
 package config
 
 import (
-	"embed"
-	_ "embed"
-	"fmt"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/frame/mux"
-	"github.com/injoyai/logs"
-	"github.com/injoyai/lorca"
-	"io/fs"
-	"net"
-	"net/http"
+	"github.com/injoyai/conv/cfg/v2"
+	"github.com/injoyai/goutil/g"
+	"github.com/injoyai/goutil/oss"
+	"path/filepath"
 )
 
-//go:embed index.html
-var html string
-
-//go:embed dist/*
-var dist embed.FS
-
-func Run(filename string) error {
-
-	s := mux.New()
-	s.SetPort(0)
-
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		return err
+func NewConfig(filename string, natures Natures) *Config {
+	oss.NewDir(filepath.Dir(filename))
+	m := cfg.WithFile(filename).(*conv.Map)
+	return &Config{
+		Filename: filename,
+		Natures:  natures.init(m),
+		m:        m,
 	}
-	web, err := fs.Sub(dist, "dist")
-	if err != nil {
-		return err
+}
+
+type Config struct {
+	Filename string
+	Natures  []Nature
+	m        *conv.Map
+}
+
+func (this *Config) Get() []Nature {
+	return this.Natures
+}
+
+func (this *Config) Save(m g.Map) error {
+	for k, v := range m {
+		this.m.Set(k, v)
 	}
-	go http.Serve(l, http.FileServer(http.FS(web)))
+	return oss.New(this.Filename, this.m.String())
+}
 
-	return lorca.Run(&lorca.Config{
-		Width:  720,
-		Height: 860,
-		Index:  "http://" + l.Addr().String() + "/index.html",
-	}, func(app lorca.APP) error {
+type Nature struct {
+	Name  string      `json:"name"`
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
+	Type  string      `json:"type"`
+}
 
-		configs := GetConfigs()
+type Natures []Nature
 
-		//加载配置数据
-		app.Eval(fmt.Sprintf(`loadConfig(%s)`, conv.String(configs)))
-
-		//获取保存数据
-		app.Bind("saveToFile", func(config interface{}) {
-			fmt.Println(config)
-			if err := SaveConfigs(conv.GMap(config)); err != nil {
-				logs.Err(err)
-				app.Eval(fmt.Sprintf(`notice("%v");`, err))
-			} else {
-				app.Eval(`notice("保存成功");`)
+func (natures Natures) init(m *conv.Map) []Nature {
+	for i := range natures {
+		switch natures[i].Type {
+		case "bool":
+			natures[i].Value = m.GetBool(natures[i].Key)
+		case "object":
+			object := Natures(nil)
+			for k, v := range m.GetGMap(natures[i].Key) {
+				object = append(object, Nature{
+					Name:  k,
+					Key:   k,
+					Value: v,
+				})
 			}
-		})
+			natures[i].Value = object
+		case "object2":
+			if natures[i].Value == nil {
+				natures[i].Value = []Nature{}
+			}
+			ls := natures[i].Value.([]Nature)
+			for k, v := range m.GetGMap(natures[i].Key) {
+				for j := range ls {
+					if ls[j].Key == k {
+						ls[j].Value = v
+						continue
+					}
+				}
+			}
+		default:
+			natures[i].Value = m.GetString(natures[i].Key)
+		}
+	}
+	return natures
+}
 
-		return nil
-	})
+func (this Natures) Map() g.Map {
+	m := g.Map{}
+	for _, v := range this {
+		m[v.Key] = v.Value
+	}
+	return m
 }

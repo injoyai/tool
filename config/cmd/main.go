@@ -5,8 +5,6 @@ import (
 )
 
 func main() {
-	//if len(os.Args) <= 1 {
-	//	return
-	//}
-	config.Run("")
+
+	config.GUI(config.NewConfig("config.json", nil)) // testdata.DefaultNatures))
 }
