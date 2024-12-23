@@ -14,20 +14,23 @@ var html string
 func GUI(cfg *Config) error {
 
 	return lorca.Run(&lorca.Config{
-		Width:   720,
-		Height:  860,
-		Index:   html,
-		Options: nil,
+		Width:  720,
+		Height: 860,
+		Index:  html,
 	}, func(app lorca.APP) error {
 
 		configs := cfg.Get()
-
 		//加载配置数据
 		app.Eval(fmt.Sprintf(`loadConfig(%s)`, conv.String(configs)))
 
+		app.Bind("loading", func() {
+			configs := cfg.Get()
+			//加载配置数据
+			app.Eval(fmt.Sprintf(`loadConfig(%s)`, conv.String(configs)))
+		})
+
 		//获取保存数据
 		app.Bind("saveToFile", func(config interface{}) {
-			fmt.Println(config)
 			if err := cfg.Save(conv.GMap(config)); err != nil {
 				logs.Err(err)
 				app.Eval(fmt.Sprintf(`notice("%v");`, err))

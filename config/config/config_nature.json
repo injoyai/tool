@@ -1,0 +1,81 @@
+[
+  {
+    "key": "nickname",
+    "name": "昵称"
+  },
+  {
+    "key": "resource",
+    "name": "资源地址"
+  },
+  {
+    "key": "proxy",
+    "name": "默认代理地址"
+  },
+  {
+    "key": "proxyIgnore",
+    "name": "忽略代理正则"
+  },
+  {
+    "key": "memoHost",
+    "name": "备注请求地址"
+  },
+  {
+    "key": "memoToken",
+    "name": "备注API秘钥"
+  },
+  {
+    "key": "uploadMinio",
+    "name": "Minio上传配置",
+    "type": "object2",
+    "value": [
+      {
+        "name": "请求地址",
+        "key": "endpoint"
+      },
+      {
+        "name": "Accesskey",
+        "key": "access"
+      },
+      {
+        "name": "Secretkey",
+        "key": "secret"
+      },
+      {
+        "name": "存储桶",
+        "key": "bucket"
+      },
+      {
+        "name": "随机名称",
+        "key": "rename",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "key": "downloadDir",
+    "name": "默认下载地址"
+  },
+  {
+    "key": "downloadNoticeEnable",
+    "name": "默认启用通知",
+    "type": "bool"
+  },
+  {
+    "key": "downloadNoticeText",
+    "name": "默认通知内容"
+  },
+  {
+    "key": "downloadVoiceEnable",
+    "name": "默认启用语音",
+    "type": "bool"
+  },
+  {
+    "key": "downloadVoiceText",
+    "name": "默认语音内容"
+  },
+  {
+    "key": "customOpen",
+    "name": "自定义打开",
+    "type": "object"
+  }
+]

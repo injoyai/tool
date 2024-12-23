@@ -2,7 +2,7 @@ package testdata
 
 import "github.com/injoyai/tool/config"
 
-var DefaultNatures = []config.Nature{
+var ExampleNatures = []*config.Nature{
 	{Key: "nickName", Name: "昵称"},
 	{Key: "resource", Name: "资源地址"},
 	{Key: "proxy", Name: "默认代理地址"},

@@ -5,33 +5,37 @@ import (
 	"github.com/injoyai/conv/cfg/v2"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/oss"
+	"github.com/injoyai/logs"
 	"path/filepath"
 )
 
-func NewConfig(filename string, natures Natures) *Config {
+func New(filename string, natures Natures) *Config {
 	oss.NewDir(filepath.Dir(filename))
 	m := cfg.WithFile(filename).(*conv.Map)
 	return &Config{
 		Filename: filename,
-		Natures:  natures.init(m),
+		Natures:  initNature(natures, m),
 		m:        m,
 	}
 }
 
 type Config struct {
 	Filename string
-	Natures  []Nature
+	Natures  []*Nature
 	m        *conv.Map
 }
 
-func (this *Config) Get() []Nature {
+func (this *Config) Get() []*Nature {
 	return this.Natures
+	return initNature(this.Natures, this.m)
 }
 
 func (this *Config) Save(m g.Map) error {
 	for k, v := range m {
 		this.m.Set(k, v)
 	}
+	logs.Debug(this.Filename)
+	logs.Debug(this.m.String())
 	return oss.New(this.Filename, this.m.String())
 }
 
@@ -42,17 +46,17 @@ type Nature struct {
 	Type  string      `json:"type"`
 }
 
-type Natures []Nature
+type Natures []*Nature
 
-func (natures Natures) init(m *conv.Map) []Nature {
+func initNature(natures []*Nature, m *conv.Map) []*Nature {
 	for i := range natures {
 		switch natures[i].Type {
 		case "bool":
 			natures[i].Value = m.GetBool(natures[i].Key)
 		case "object":
-			object := Natures(nil)
+			object := Natures{}
 			for k, v := range m.GetGMap(natures[i].Key) {
-				object = append(object, Nature{
+				object = append(object, &Nature{
 					Name:  k,
 					Key:   k,
 					Value: v,
@@ -61,7 +65,7 @@ func (natures Natures) init(m *conv.Map) []Nature {
 			natures[i].Value = object
 		case "object2":
 			if natures[i].Value == nil {
-				natures[i].Value = []Nature{}
+				natures[i].Value = []*Nature{}
 			}
 			ls := natures[i].Value.([]Nature)
 			for k, v := range m.GetGMap(natures[i].Key) {
