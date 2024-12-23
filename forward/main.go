@@ -15,5 +15,7 @@ func main() {
 		Listen:  core.NewListenTCP(cfg.GetInt("port")),
 		Forward: core.NewDialTCP(cfg.GetString("address")),
 	}
-	f.ListenTCP()
+
+	Run(f.ListenTCP)
+
 }
