@@ -5,7 +5,6 @@ import (
 	"github.com/injoyai/conv/cfg/v2"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/oss"
-	"github.com/injoyai/logs"
 	"path/filepath"
 )
 
@@ -14,7 +13,7 @@ func New(filename string, natures Natures) *Config {
 	m := cfg.WithFile(filename).(*conv.Map)
 	return &Config{
 		Filename: filename,
-		Natures:  initNature(natures, m),
+		Natures:  natures, // initNature(natures, m),
 		m:        m,
 	}
 }
@@ -26,7 +25,6 @@ type Config struct {
 }
 
 func (this *Config) Get() []*Nature {
-	return this.Natures
 	return initNature(this.Natures, this.m)
 }
 
@@ -34,8 +32,6 @@ func (this *Config) Save(m g.Map) error {
 	for k, v := range m {
 		this.m.Set(k, v)
 	}
-	logs.Debug(this.Filename)
-	logs.Debug(this.m.String())
 	return oss.New(this.Filename, this.m.String())
 }
 

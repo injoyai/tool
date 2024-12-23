@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/logs"
 	"github.com/injoyai/lorca"
 )
 
@@ -32,7 +31,6 @@ func GUI(cfg *Config) error {
 		//获取保存数据
 		app.Bind("saveToFile", func(config interface{}) {
 			if err := cfg.Save(conv.GMap(config)); err != nil {
-				logs.Err(err)
 				app.Eval(fmt.Sprintf(`notice("%v");`, err))
 			} else {
 				app.Eval(`notice("保存成功");`)
