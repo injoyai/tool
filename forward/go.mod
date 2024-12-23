@@ -6,6 +6,7 @@ require (
 	github.com/injoyai/conv v1.1.13
 	github.com/injoyai/goutil v0.0.0-20241217034619-c318274199c3
 	github.com/injoyai/proxy v1.0.14
+	github.com/injoyai/tool/config v0.0.0-20241223140450-0648ef364f2d
 )
 
 require (
@@ -21,6 +22,7 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/injoyai/base v1.0.19 // indirect
 	github.com/injoyai/logs v1.0.9 // indirect
+	github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
@@ -29,6 +31,7 @@ require (
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/pelletier/go-toml/v2 v2.1.1 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
