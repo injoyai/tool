@@ -3,8 +3,6 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"github.com/getlantern/systray"
-	"github.com/injoyai/base/safe"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/database/sqlite"
 	"github.com/injoyai/goutil/g"
@@ -12,14 +10,13 @@ import (
 	"github.com/injoyai/goutil/net/ip"
 	"github.com/injoyai/goutil/notice"
 	"github.com/injoyai/goutil/oss"
+	"github.com/injoyai/goutil/oss/tray"
 	"github.com/injoyai/goutil/script"
 	"github.com/injoyai/goutil/script/js"
 	"github.com/injoyai/goutil/task"
 	"github.com/injoyai/logs"
 	"github.com/injoyai/lorca"
 	"net"
-	"os"
-	"path/filepath"
 	"xorm.io/xorm"
 )
 
@@ -106,161 +103,109 @@ func init() {
 }
 
 func main() {
-	ui := &ico{
-		gui: &gui{
-			cfg: &lorca.Config{
-				Width:  1080,
-				Height: 560,
-				Html:   html,
-			},
+
+	tray.Run(
+		tray.WithIco(IcoTimer),
+		func(s *tray.Tray) {
+
+			x := s.AddMenu().SetName("显示").SetIco(IcoMenuTimer)
+			defer func() {
+				x.ClickedCh <- struct{}{}
+			}()
+			x.OnClick(func(m *tray.Menu) {
+
+				err := lorca.Run(&lorca.Config{
+					Width:  1080,
+					Height: 1080,
+					Index:  html,
+				}, func(app lorca.APP) error {
+
+					Script.SetFunc("print", func(args *script.Args) (interface{}, error) {
+						s := fmt.Sprint(args.Interfaces()...)
+						app.Eval(fmt.Sprintf(`notice("%s")`, s))
+						return nil, nil
+					})
+
+					t := &handler{app: app}
+
+					app.Bind("addTimer", func(name, cron, content string, enable bool) {
+						logs.Debug("addTimer")
+						defer t.Refresh()
+						if err := t.AddTimer(name, cron, content, enable); err != nil {
+							app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
+							return
+						}
+					})
+
+					app.Bind("updateTimer", func(id, name, cron, content string) {
+						logs.Debug("updateTimer")
+						defer t.Refresh()
+						if err := t.UpdateTimer(id, name, cron, content); err != nil {
+							app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
+							return
+						}
+					})
+
+					app.Bind("enableTimer", func(id string, enable bool) {
+						logs.Debug("enableTimer")
+						defer t.Refresh()
+						if err := t.EnableTimer(id, enable); err != nil {
+							app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
+							return
+						}
+					})
+
+					app.Bind("delTimer", func(id string) {
+						logs.Debug("delTimer")
+						defer t.Refresh()
+						if err := t.DelTimer(id); err != nil {
+							app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
+							return
+						}
+					})
+
+					app.Bind("refresh", func() { t.Refresh() })
+
+					t.Refresh()
+					return nil
+				})
+				logs.Debug(err)
+			})
+
+			tray.WithStartup()(s)
+
+			s.AddMenu().SetName("退出").SetIco(IcoMenuQuit).OnClick(func(m *tray.Menu) {
+				s.Close()
+			})
+
 		},
-		Closer: safe.NewCloser(),
-	}
-	ui.SetCloseFunc(func() error {
-		//退出界面
-		ui.gui.Close()
-		//退出图标
-		systray.Quit()
-		return nil
-	})
-
-	systray.Run(ui.onReady, ui.onExit)
-}
-
-type ico struct {
-	gui *gui
-	*safe.Closer
-}
-
-func (this *ico) onReady() {
-	systray.SetIcon(IcoTimer)
-	systray.SetTooltip("定时任务")
-
-	//显示菜单,这个库不能区分左键和右键,固设置了该菜单
-	mShow := systray.AddMenuItem("显示", "显示界面")
-	mShow.SetIcon(IcoMenuTimer)
-	go func() {
-		for {
-			<-mShow.ClickedCh
-			//show会阻塞,多次点击无效
-			this.gui.show()
-		}
-	}()
-
-	filename := oss.ExecName()
-	name := filepath.Base(filename)
-	startLnk := oss.UserStartupDir(name + ".lnk")
-	startup := oss.Exists(startLnk)
-	mStartup := systray.AddMenuItemCheckbox("自启", "开机自启", startup)
-	go func() {
-		for {
-			<-mStartup.ClickedCh
-			if mStartup.Checked() {
-				os.Remove(startLnk)
-			} else {
-				Shortcut(oss.UserStartupDir(name+".lnk"), filename)
-			}
-			if oss.Exists(startLnk) {
-				mStartup.Check()
-			} else {
-				mStartup.Uncheck()
-			}
-		}
-	}()
-
-	//退出菜单
-	mQuit := systray.AddMenuItem("退出", "退出程序")
-	mQuit.SetIcon(IcoMenuQuit)
-	go func() {
-		<-mQuit.ClickedCh
-		this.Close()
-	}()
+	)
 
 }
 
-func (this *ico) onExit() {
-	logs.Debug("退出")
-}
-
-type gui struct {
-	cfg *lorca.Config
+type handler struct {
 	app lorca.APP
 }
 
-func (this *gui) Close() error {
-	if this.app != nil {
-		return this.app.Close()
-	}
-	return nil
-}
-
-func (this *gui) show() {
-	lorca.Run(this.cfg, func(app lorca.APP) error {
-		this.app = app
-
-		Script.SetFunc("print", func(args *script.Args) (interface{}, error) {
-			s := fmt.Sprint(args.Interfaces()...)
-			app.Eval(fmt.Sprintf(`notice("%s")`, s))
-			return nil, nil
-		})
-
-		this.Refresh(app)
-
-		app.Bind("addTimer", func(name, cron, content string, enable bool) {
-			if err := this.AddTimer(name, cron, content, enable); err != nil {
-				app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
-				return
-			}
-			this.Refresh(app)
-		})
-
-		app.Bind("updateTimer", func(id, name, cron, content string) {
-			if err := this.UpdateTimer(id, name, cron, content); err != nil {
-				app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
-				return
-			}
-			this.Refresh(app)
-		})
-
-		app.Bind("enableTimer", func(id string, enable bool) {
-			defer this.Refresh(app)
-			if err := this.EnableTimer(id, enable); err != nil {
-				app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
-				return
-			}
-		})
-
-		app.Bind("delTimer", func(id string) {
-			if err := this.DelTimer(id); err != nil {
-				app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
-				return
-			}
-			this.Refresh(app)
-		})
-
-		app.Bind("refresh", func() { this.Refresh(app) })
-
-		return nil
-	})
-}
-
-func (this *gui) Refresh(app lorca.APP) {
+func (this *handler) Refresh() {
+	logs.Debug("Refresh")
+	this.app.Eval("notice('刷新')")
 	data := []*Timer(nil)
 	if err := DB.Find(&data); err != nil {
-		app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
+		this.app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
 		return
 	}
-	app.Eval("clearTimer()")
+	this.app.Eval("clearTimer()")
 	for _, v := range data {
 		next := ""
 		if t := Corn.GetTask(conv.String(v.ID)); t != nil {
 			next = t.Next.Format("2006-01-02 15:04:05")
 		}
-		app.Eval(fmt.Sprintf(`loadingTimer(%d,'%s','%s','%s',%t,'%s')`, v.ID, v.Name, v.Cron, v.Content, v.Enable, next))
+		this.app.Eval(fmt.Sprintf(`loadingTimer(%d,'%s','%s','%s',%t,'%s')`, v.ID, v.Name, v.Cron, v.Content, v.Enable, next))
 	}
 }
 
-func (this *gui) AddTimer(name, cron, content string, enable bool) error {
+func (this *handler) AddTimer(name, cron, content string, enable bool) error {
 	t := &Timer{
 		Name:    name,
 		Cron:    cron,
@@ -285,7 +230,7 @@ func (this *gui) AddTimer(name, cron, content string, enable bool) error {
 	return nil
 }
 
-func (this *gui) UpdateTimer(id, name, cron, content string) error {
+func (this *handler) UpdateTimer(id, name, cron, content string) error {
 	t := new(Timer)
 	if _, err := DB.ID(id).Get(t); err != nil {
 		return err
@@ -315,7 +260,7 @@ func (this *gui) UpdateTimer(id, name, cron, content string) error {
 	return nil
 }
 
-func (this *gui) EnableTimer(id string, enable bool) error {
+func (this *handler) EnableTimer(id string, enable bool) error {
 	t := new(Timer)
 	if _, err := DB.ID(id).Get(t); err != nil {
 		return err
@@ -344,7 +289,7 @@ func (this *gui) EnableTimer(id string, enable bool) error {
 	})
 }
 
-func (this *gui) DelTimer(id string) error {
+func (this *handler) DelTimer(id string) error {
 	_, err := DB.ID(id).Delete(new(Timer))
 	if err != nil {
 		return err
