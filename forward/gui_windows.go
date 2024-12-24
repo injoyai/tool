@@ -1,54 +1,49 @@
 package main
 
 import (
+	"context"
 	_ "embed"
+	"fmt"
+	"github.com/injoyai/base/chans"
+	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/tray"
+	"github.com/injoyai/proxy/core"
+	"github.com/injoyai/proxy/forward"
 	"github.com/injoyai/tool/config"
 )
 
-func Run(f func() error) {
+func Run(f *forward.Forward) {
+
 	tray.Run(
 		func(s *tray.Tray) {
-			go func() {
-				s.SetHint("状态: 运行中\n端口: 9000\n地址: 192.168.192.2:9000")
-				err := f()
-				s.SetHint("状态: " + err.Error() + "\n端口: 9000\n地址: 192.168.192.2:9000")
-			}()
-		},
-		tray.WithIco(ico),
-		tray.WithLabel("v1.0.1"),
-		func(s *tray.Tray) {
+
+			r := chans.NewRerun(func(ctx context.Context) {
+				s.SetHint(fmt.Sprintf("状态: 运行中\n端口: %s\n地址: %s", f.Listen.Port, f.Forward.Address))
+				err := f.Run(ctx)
+				s.SetHint(fmt.Sprintf("状态: %v\n端口: %s\n地址: %s", err, f.Listen.Port, f.Forward.Address))
+			})
+
+			r.Rerun()
+
 			s.AddMenu().SetName("配置").OnClick(func(m *tray.Menu) {
 				config.GUI(config.New(oss.UserInjoyDir("/forward/config/config.yaml"), config.Natures{
 					{Name: "监听端口", Key: "port", Type: "string"},
 					{Name: "转发地址", Key: "address", Type: "string"},
+				}).SetWidthHeight(720, 345).OnSaved(func(m *conv.Map) {
+					f.Listen = core.NewListenTCP(m.GetInt("port"))
+					f.Forward = core.NewDialTCP(m.GetString("address"))
+					r.Rerun()
 				}))
-
-				//lorca.Run(&lorca.Config{
-				//	Width:  300,
-				//	Height: 200,
-				//	Index:  configHtml,
-				//}, func(app lorca.APP) error {
-				//	app.Bind("save", func(port, address string) {
-				//		filename := oss.UserInjoyDir("/forward/config.json")
-				//		oss.New(filename, g.Map{
-				//			"port":    port,
-				//			"address": address,
-				//		})
-				//		app.Eval(`showToast("配置保存成功,重启生效")`)
-				//	})
-				//	return nil
-				//})
 			})
+
 		},
+		tray.WithIco(ico),
+		tray.WithLabel("v1.0.1"),
 		tray.WithStartup(),
 		tray.WithExit(),
 	)
 }
-
-//go:embed config.html
-var configHtml string
 
 var ico = []byte{
 	0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x20, 0x20, 0x00, 0x00, 0x01, 0x00,

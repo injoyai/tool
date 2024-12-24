@@ -1,6 +1,6 @@
 name="forward_linux_amd64"
 GOOS=linux GOARCH=amd64 go build -v -ldflags="-w -s" -o ./bin/$name
-echo "Linux编译完成..."
+echo "$name编译完成..."
 echo "开始压缩..."
 upx -9 -k "./bin/$name"
 if [ -f "./bin/$name.~" ]; then
@@ -12,7 +12,7 @@ fi
 
 name="forward_linux_arm"
 GOOS=linux GOARCH=arm GOARM=7 go build -v -ldflags="-w -s" -o ./bin/$name
-echo "Ubuntu编译完成..."
+echo "$name编译完成..."
 echo "开始压缩..."
 upx -9 -k "./bin/$name"
 if [ -f "./bin/$name.~" ]; then

@@ -1,3 +1,8 @@
 package main
 
-func Run(f func() error) { f() }
+import (
+	"context"
+	"github.com/injoyai/proxy/forward"
+)
+
+func Run(f *forward.Forward) { f.Run(context.Background()) }

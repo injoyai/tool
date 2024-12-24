@@ -3,10 +3,11 @@ module github.com/injoyai/tool/forward
 go 1.20
 
 require (
+	github.com/injoyai/base v1.0.19
 	github.com/injoyai/conv v1.1.13
 	github.com/injoyai/goutil v0.0.0-20241217034619-c318274199c3
-	github.com/injoyai/proxy v1.0.14
-	github.com/injoyai/tool/config v0.0.0-20241223140450-0648ef364f2d
+	github.com/injoyai/proxy v1.0.16
+	github.com/injoyai/tool/config v0.0.0-20241224024342-8f59377bb931
 )
 
 require (
@@ -20,7 +21,6 @@ require (
 	github.com/getlantern/systray v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/injoyai/base v1.0.19 // indirect
 	github.com/injoyai/logs v1.0.9 // indirect
 	github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect

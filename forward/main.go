@@ -15,11 +15,11 @@ func main() {
 			&cfg.Flag{Name: "address", Default: "192.168.192.2:9000", Usage: "转发地址"},
 		),
 	)
-	f := forward.Forward{
+	f := &forward.Forward{
 		Listen:  core.NewListenTCP(cfg.GetInt("port")),
 		Forward: core.NewDialTCP(cfg.GetString("address")),
 	}
 
-	Run(f.ListenTCP)
+	Run(f)
 
 }
