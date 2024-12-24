@@ -23,7 +23,7 @@ if [ -f "./bin/$name.000" ]; then
 fi
 
 name="forward_windows_amd64"
-GOOS=windows GOARCH=amd64 go build -v -ldflags="-w -s" -o ./bin/$name.exe
+GOOS=windows GOARCH=amd64 go build -v -ldflags="-H windowsgui -w -s" -o ./bin/$name.exe
 echo "Windows编译完成..."
 echo "开始压缩..."
 upx -9 -k "./bin/$name.exe"

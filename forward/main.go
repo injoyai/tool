@@ -7,9 +7,13 @@ import (
 	"github.com/injoyai/proxy/forward"
 )
 
+const Version = "v1.0.1"
+
+var configPath = oss.UserInjoyDir("/forward/config/config.yaml")
+
 func main() {
 	cfg.Init(
-		cfg.WithFile(oss.UserInjoyDir("/forward/config/config.yaml")),
+		cfg.WithFile(configPath),
 		cfg.WithFlag(
 			&cfg.Flag{Name: "port", Default: 9000, Usage: "本地监听端口"},
 			&cfg.Flag{Name: "address", Default: "192.168.192.2:9000", Usage: "转发地址"},
@@ -21,5 +25,4 @@ func main() {
 	}
 
 	Run(f)
-
 }

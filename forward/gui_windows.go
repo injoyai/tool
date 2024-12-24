@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/tray"
 	"github.com/injoyai/proxy/core"
 	"github.com/injoyai/proxy/forward"
@@ -27,7 +26,7 @@ func Run(f *forward.Forward) {
 			r.Rerun()
 
 			s.AddMenu().SetName("配置").OnClick(func(m *tray.Menu) {
-				config.GUI(config.New(oss.UserInjoyDir("/forward/config/config.yaml"), config.Natures{
+				config.GUI(config.New(configPath, config.Natures{
 					{Name: "监听端口", Key: "port", Type: "string"},
 					{Name: "转发地址", Key: "address", Type: "string"},
 				}).SetWidthHeight(720, 345).OnSaved(func(m *conv.Map) {
@@ -39,7 +38,7 @@ func Run(f *forward.Forward) {
 
 		},
 		tray.WithIco(ico),
-		tray.WithLabel("v1.0.1"),
+		tray.WithLabel(Version),
 		tray.WithStartup(),
 		tray.WithExit(),
 	)
