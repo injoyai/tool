@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>配置</title>
+    <title>全局配置</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -81,7 +81,6 @@
             margin-top: 10px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
-
 
         .notification {
             position: fixed;
@@ -168,14 +167,14 @@
                 // 设置 data-key 属性为参数的键
                 subConfigForm.setAttribute("data-key", config.key);
                 config.value.forEach(function (subConfig) {
-                    addObjectNature(subConfigForm, subConfig.key, subConfig.value,)
+                    addObjectNature(subConfigForm, subConfig.key, subConfig.value, )
                 });
 
                 var addButton = document.createElement("button");
                 addButton.className = "add-field-button";
                 addButton.textContent = "+";
                 addButton.onclick = function () {
-                    addObjectNature(subConfigForm, "", "",)
+                    addObjectNature(subConfigForm, "", "", )
                 };
                 inputContainer.appendChild(addButton);
 
@@ -238,7 +237,7 @@
 
     }
 
-    function addObjectNature2(parent, nature) {
+    function addObjectNature2(parent,nature) {
         var childContainer = document.createElement("div");
         childContainer.className = "form-row";
         parent.appendChild(childContainer);
@@ -258,7 +257,7 @@
         var childValueContainer = document.createElement("div");
         childValueContainer.className = "input-container";
         childContainer.appendChild(childValueContainer);
-        if (nature.type === "bool") {
+        if (nature.type==="bool"){
             var childValue = document.createElement("input");
             childValue.type = "checkbox";
             childValue.className = "checkbox-label";
@@ -266,7 +265,7 @@
             childValue.checked = nature.value;
             childValueContainer.appendChild(childValue);
             childValueContainer.appendChild(document.createTextNode("是"));
-        } else {
+        }else {
             var childValue = document.createElement("input");
             childValue.type = "text";
             childValue.name = "_child";
@@ -280,12 +279,20 @@
         var configObject = {};
 
 
-    
+        //父级
+        form.querySelectorAll(".form-row > .input-container > input").forEach(function (input) {
+            if (input.name !== "_child") {
+                if (input.className === "checkbox-input") {
+                    configObject[input.name] = input.checked
+                } else {
+                    configObject[input.name] = input.value
+                }
+            }
+        })
 
         //子级 object
         form.querySelectorAll(".sub-config-form").forEach(function (subForm) {
             key = subForm.getAttribute("data-key")
-            console.log("subForm: ", subForm)
             childObject = {}
             subForm.querySelectorAll(".form-row").forEach(function (formRow) {
                 var key2 = null
@@ -297,9 +304,9 @@
                 })
                 formRow.querySelectorAll(".input-container").forEach(function (labelContainer) {
                     labelContainer.querySelectorAll("input").forEach(function (input) {
-                        if (input.type === "checkbox") {
-                            value2 = input.checked
-                        } else {
+                        if (input.type==="checkbox") {
+                            value2=input.checked
+                        }else{
                             value2 = input.value
                         }
                     })
@@ -311,58 +318,27 @@
             configObject[key] = childObject
         })
 
-            //父级
-        form.querySelectorAll(".form-row:not(.sub-config-form .form-row)").forEach(function (input) {
-            if (input.name !== "_child") {
-                if (input.className === "checkbox-input") {
-                    configObject[input.name] = input.checked
-                } else {
-                    configObject[input.name] = input.value
-                }
-            }
-        })
-
 
         //console.log(configObject);
         // 保存配置到文件或其他地方
         saveToFile(configObject);
     }
 
-    function notice(msg) {
+    function notice(msg){
         var notification = document.createElement('div');
         notification.className = 'notification';
         notification.innerText = msg;
         document.body.appendChild(notification);
 
         // 2秒后自动消失
-        setTimeout(function () {
+        setTimeout(function() {
             document.body.removeChild(notification);
         }, 2000);
-    }
-
-
-
-
-    function getConfigs(){
-        // bind到go
     }
 
     function saveToFile(config) {
         // bind到go
     }
-
-    document.addEventListener('keydown', function(event) {
-        // F5 键的 keyCode 是 116
-        if (event.keyCode === 116) {
-            event.preventDefault(); // 阻止默认刷新行为
-            const form = document.getElementById("configForm");
-            form.innerHTML = '';  // 清空所有内容
-            loading(); // 重新加载配置
-        }
-    });
-
-
-
 </script>
 </body>
 </html>

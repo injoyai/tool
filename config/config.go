@@ -19,9 +19,23 @@ func New(filename string, natures Natures) *Config {
 }
 
 type Config struct {
-	Filename string
-	Natures  []*Nature
-	m        *conv.Map
+	Width    int               //宽度,可选
+	Height   int               //高度,可选
+	Filename string            //本地文件路径,必须
+	Natures  []*Nature         //格式,必须
+	m        *conv.Map         //缓存数据
+	onSaved  func(m *conv.Map) //保存事件,可选
+}
+
+func (this *Config) SetWidthHeight(width, height int) *Config {
+	this.Width = width
+	this.Height = height
+	return this
+}
+
+func (this *Config) OnSaved(onSaved func(m *conv.Map)) *Config {
+	this.onSaved = onSaved
+	return this
 }
 
 func (this *Config) Get() []*Nature {
@@ -63,7 +77,9 @@ func initNature(natures []*Nature, m *conv.Map) []*Nature {
 			if natures[i].Value == nil {
 				natures[i].Value = []*Nature{}
 			}
-			ls := natures[i].Value.([]Nature)
+			var ls []*Nature
+			conv.Unmarshal(natures[i].Value, &ls)
+			//ls := natures[i].Value.([]Nature)
 			for k, v := range m.GetGMap(natures[i].Key) {
 				for j := range ls {
 					if ls[j].Key == k {
@@ -72,6 +88,7 @@ func initNature(natures []*Nature, m *conv.Map) []*Nature {
 					}
 				}
 			}
+			natures[i].Value = ls
 		default:
 			natures[i].Value = m.GetString(natures[i].Key)
 		}

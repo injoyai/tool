@@ -1,8 +1,22 @@
-package testdata
+package main
 
-import "github.com/injoyai/tool/config"
+import (
+	"fmt"
+	"github.com/injoyai/conv"
+	"github.com/injoyai/tool/config"
+	"log"
+)
 
-var ExampleNatures = []*config.Nature{
+func main() {
+	config.GUI(config.New("./example/complex/config.yaml", Natures).
+		SetWidthHeight(720, 680).
+		OnSaved(func(m *conv.Map) {
+			log.Println("保存成功")
+			fmt.Println(m.String())
+		}))
+}
+
+var Natures = []*config.Nature{
 	{Key: "nickName", Name: "昵称"},
 	{Key: "resource", Name: "资源地址"},
 	{Key: "proxy", Name: "默认代理地址"},

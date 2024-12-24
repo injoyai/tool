@@ -11,10 +11,16 @@ import (
 var html string
 
 func GUI(cfg *Config) error {
+	if cfg.Width <= 0 {
+		cfg.Width = 720
+	}
+	if cfg.Height <= 0 {
+		cfg.Height = 480
+	}
 
 	return lorca.Run(&lorca.Config{
-		Width:  720,
-		Height: 860,
+		Width:  cfg.Width,
+		Height: cfg.Height,
 		Index:  html,
 	}, func(app lorca.APP) error {
 
@@ -30,11 +36,16 @@ func GUI(cfg *Config) error {
 
 		//获取保存数据
 		app.Bind("saveToFile", func(config interface{}) {
-			if err := cfg.Save(conv.GMap(config)); err != nil {
+			err := cfg.Save(conv.GMap(config))
+			if err != nil {
 				app.Eval(fmt.Sprintf(`notice("%v");`, err))
 			} else {
 				app.Eval(`notice("保存成功");`)
+				if cfg.onSaved != nil {
+					cfg.onSaved(cfg.m)
+				}
 			}
+
 		})
 
 		return nil
