@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定时任务</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        .timer-form {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .timer-form button {
+            padding: 12px 24px;
+            background-color: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .timer-form button:hover {
+            background-color: #1557b0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+        }
+
+        .timer-form .refresh {
+            background-color: #34a853;
+        }
+
+        .timer-form .refresh:hover {
+            background-color: #2d8544;
+            box-shadow: 0 2px 8px rgba(52, 168, 83, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #5f6368;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .actions .edit {
+            background-color: #fbbc05;
+            color: #fff;
+            margin-right: 8px;
+        }
+
+        .actions .delete {
+            background-color: #ea4335;
+            color: #fff;
+        }
+
+        .actions button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 开关样式优化 */
+        .switch {
+            width: 44px;
+            height: 24px;
+        }
+
+        .slider {
+            background-color: #dadce0;
+        }
+
+        .slider:before {
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input:checked + .slider {
+            background-color: #1a73e8;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* 模态框样式优化 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #ffffff;
+            margin: 5% auto;
+            padding: 30px;
+            border: none;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+            z-index: 9001;
+        }
+
+        .modal-content h2 {
+            color: #1a73e8;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content button:hover {
+            background-color: #1557b0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+        }
+
+        /* 通知样式优化 */
+        .notification {
+            padding: 15px 25px;
+            background-color: #1a73e8;
+            color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* 编辑器相关样式 */
+        .editor-label {
+            color: #5f6368;
+            font-size: 14px;
+            margin: 15px 0 8px;
+        }
+        
+        .CodeMirror {
+            height: 200px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .CodeMirror-focused {
+            border-color: #1a73e8;
+        }
+
+        /* 调整行号区域的宽度和样式 */
+        .CodeMirror-gutters {
+            width: 45px !important;
+            background-color: #272822 !important;
+            border-right: 1px solid #464646 !important;
+        }
+
+        /* 调整代码内容区域的内边距 */
+        .CodeMirror-lines {
+            padding: 8px 0;
+        }
+
+        .CodeMirror pre.CodeMirror-line,
+        .CodeMirror pre.CodeMirror-line-like {
+            padding: 0 8px 0 12px;
+        }
+
+        /* 调整行号的样式 */
+        .CodeMirror-linenumber {
+            padding: 0 3px 0 5px !important;
+            color: #75715e !important;
+            font-size: 12px;
+        }
+
+        /* 调整滚动条样式 */
+        .CodeMirror-scrollbar-filler {
+            background-color: transparent;
+        }
+
+        .CodeMirror-simplescroll-horizontal div,
+        .CodeMirror-simplescroll-vertical div {
+            background-color: #464646;
+            border: 1px solid #666;
+            border-radius: 10px;
+        }
+
+        /* 调整选中文本的背景色 */
+        .CodeMirror-selected {
+            background: #49483E !important;
+        }
+
+        .CodeMirror-focused .CodeMirror-selected {
+            background: #49483E !important;
+        }
+
+        /* 调整光标颜色 */
+        .CodeMirror-cursor {
+            border-left: 2px solid #f8f8f0 !important;
+        }
+
+        /* 调整模态框尺寸，使编辑器有更多空间 */
+        .modal-content {
+            width: 95%;
+            max-width: 800px;
+            padding: 25px;
+        }
+
+        /* 修改模态框的 z-index */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        /* 添加表格中代码单元格的样式 */
+        .code-cell {
+            max-height: 100px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .code-cell .CodeMirror {
+            height: 100px;
+            pointer-events: auto;
+        }
+
+        /* 编辑器容器样式 */
+        .editor-container {
+            position: relative;
+            z-index: 9002;
+            margin: 15px 0;
+        }
+
+        .CodeMirror {
+            height: 200px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #272822;
+        }
+
+        /* 表格中的编辑器样式 */
+        .code-cell {
+            position: relative;
+            height: 100px;
+            overflow: hidden;
+        }
+
+        .code-cell .CodeMirror {
+            height: 100px;
+        }
+
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/scroll/simplescrollbars.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/scroll/simplescrollbars.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>定时任务</h1>
+    <div class="timer-form">
+        <button id="openAddModal">添加</button>
+        <button id="refreshAll" class="refresh">刷新</button>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>主键</th>
+            <th>名称</th>
+            <th>Cron表达式</th>
+            <th>执行内容</th>
+            <th>启用/禁用</th>
+            <th>下次执行时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="timerTable">
+        <!-- Timer rows will be inserted here -->
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Timer Modal -->
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>添加定时任务</h2>
+        <input type="text" id="addName" placeholder="名称">
+        <input type="text" id="addCronExpression" placeholder="Cron表达式">
+        <div class="editor-label">执行内容:</div>
+        <div class="editor-container">
+            <textarea id="addExecutionContent"></textarea>
+        </div>
+        <button id="addTimer">添加</button>
+    </div>
+</div>
+
+<!-- Edit Timer Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>修改定时任务</h2>
+        <input type="text" id="editName" placeholder="名称">
+        <input type="text" id="editCronExpression" placeholder="Cron表达式">
+        <div class="editor-label">执行内容:</div>
+        <div class="editor-container">
+            <textarea id="editExecutionContent"></textarea>
+        </div>
+        <button id="saveChanges">保存</button>
+    </div>
+</div>
+
+<script>
+    const addModal = document.getElementById('addModal');
+    const editModal = document.getElementById('editModal');
+    const addBtn = document.getElementById('openAddModal');
+    const closeAdd = addModal.getElementsByClassName('close')[0];
+    const closeEdit = editModal.getElementsByClassName('close')[0];
+
+    addBtn.onclick = function () {
+        addModal.style.display = "block";
+        setTimeout(() => {
+            addEditor.refresh();
+            addEditor.focus();
+        }, 100);
+    }
+
+    closeAdd.onclick = function () {
+        addModal.style.display = "none";
+    }
+
+    closeEdit.onclick = function () {
+        editModal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == addModal) {
+            addModal.style.display = "none";
+        }
+        if (event.target == editModal) {
+            editModal.style.display = "none";
+        }
+    }
+
+    // 声明编辑器变量
+    let addEditor, editEditor;
+    
+    // 页面加载完成后初始化编辑器
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化添加模态框的编辑器
+        addEditor = CodeMirror.fromTextArea(document.getElementById('addExecutionContent'), {
+            mode: 'javascript',
+            theme: 'monokai',
+            lineNumbers: true,
+            lineWrapping: true,
+            scrollbarStyle: 'overlay',
+            viewportMargin: Infinity,
+            gutters: ["CodeMirror-linenumbers"],
+            autoFocus: true,  // 自动获取焦点
+            matchBrackets: true,
+            indentUnit: 4,
+            tabSize: 4
+        });
+
+        // 初始化编辑模态框的编辑器
+        editEditor = CodeMirror.fromTextArea(document.getElementById('editExecutionContent'), {
+            mode: 'javascript',
+            theme: 'monokai',
+            lineNumbers: true,
+            lineWrapping: true,
+            scrollbarStyle: 'overlay',
+            viewportMargin: Infinity,
+            gutters: ["CodeMirror-linenumbers"],
+            autoFocus: true,  // 自动获取焦点
+            matchBrackets: true,
+            indentUnit: 4,
+            tabSize: 4
+        });
+
+        // 设置编辑器的初始高度
+        addEditor.setSize(null, 200);
+        editEditor.setSize(null, 200);
+
+        // 添加点击事件处理
+        addEditor.on('focus', function() {
+            addEditor.refresh();
+        });
+
+        editEditor.on('focus', function() {
+            editEditor.refresh();
+        });
+    });
+
+    // 修改添加任务的代码
+    document.getElementById('addTimer').addEventListener('click', () => {
+        const name = document.getElementById('addName').value;
+        const cron = document.getElementById('addCronExpression').value;
+        const content = addEditor.getValue(); // 使用编辑器的getValue方法获取内容
+
+        addTimer(name, cron, content, false);
+
+        // Reset form and close modal
+        document.getElementById('addName').value = '';
+        document.getElementById('addCronExpression').value = '';
+        addEditor.setValue(''); // 清空编辑器内容
+        addModal.style.display = "none";
+    });
+
+    document.getElementById('refreshAll').addEventListener('click', () => {
+        refresh()
+    });
+
+
+    // loadingTimer 加载定时器到界面
+    function loadingTimer(id, name, cron, content, enable, next) {
+        const table = document.getElementById('timerTable');
+        const row = document.createElement('tr');
+        
+        // 创建基本的行结构
+        row.innerHTML = `
+            <td>${id}</td>
+            <td>${name}</td>
+            <td>${cron}</td>
+            <td><div class="code-cell"></div></td>
+            <td><label class="switch"><input type="checkbox" ${enable ? 'checked' : ''} onchange="toggleStatus(this)"><span class="slider"></span></label></td>
+            <td>${next}</td>
+            <td class="actions">
+                <button class="edit" onclick="openEditModal(this)">修改</button>
+                <button class="delete" onclick="deleteTimer(this)">删除</button>
+            </td>
+        `;
+        
+        table.appendChild(row);
+        
+        // 为代码单元格创建只读的 CodeMirror 实例
+        const codeCell = row.querySelector('.code-cell');
+        const codeEditor = CodeMirror(codeCell, {
+            value: content,
+            mode: 'javascript',
+            theme: 'monokai',
+            lineNumbers: true,
+            readOnly: 'nocursor',
+            lineWrapping: true,
+            scrollbarStyle: 'overlay',
+            viewportMargin: Infinity,
+            gutters: ["CodeMirror-linenumbers"]
+        });
+        
+        // 存储编辑器实例，以便后续可能的操作
+        row.querySelector('.code-cell').editor = codeEditor;
+    }
+
+    function toggleStatus(checkbox) {
+        const row = checkbox.closest('tr');
+        enableTimer(row.children[0].innerText, checkbox.checked)
+    }
+
+    function openEditModal(button) {
+        const row = button.closest('tr');
+        const id = row.children[0].innerText;
+        const name = row.children[1].innerText;
+        const cron = row.children[2].innerText;
+        const content = row.querySelector('.code-cell').editor.getValue(); // 从 CodeMirror 实例获取内容
+
+        document.getElementById('editName').value = name;
+        document.getElementById('editCronExpression').value = cron;
+        editEditor.setValue(content);
+        editEditor.refresh();
+
+        editModal.style.display = "block";
+        setTimeout(() => {
+            editEditor.refresh();
+            editEditor.focus();
+        }, 100);
+
+        document.getElementById('saveChanges').onclick = function() {
+            updateTimer(
+                id,
+                document.getElementById('editName').value,
+                document.getElementById('editCronExpression').value,
+                editEditor.getValue()
+            );
+            editModal.style.display = "none";
+        }
+    }
+
+    function deleteTimer(button) {
+        const row = button.closest('tr');
+        row.remove();
+        delTimer(row.children[0].innerText);
+    }
+
+    function addTimer(name, cron, content, enable) {
+    }
+
+    function updateTimer(id, name, cron, content) {
+    }
+
+    function enableTimer(id,enable) {
+    }
+
+    function delTimer(id) {
+    }
+
+    function refresh() {
+    }
+
+    function clearTimer() {
+        const table = document.getElementById('timerTable');
+        // 清除所有 CodeMirror 实例
+        const editors = table.querySelectorAll('.code-cell');
+        editors.forEach(cell => {
+            if (cell.editor) {
+                cell.editor.toTextArea();
+            }
+        });
+        table.innerHTML = '';
+    }
+
+    function notice(msg){
+        // 假设发送成功后显示一个小窗口提醒
+        var notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.innerText = msg;
+        document.body.appendChild(notification);
+
+        // 2秒后自动消失
+        setTimeout(function() {
+            document.body.removeChild(notification);
+        }, 2000);
+    }
+
+
+</script>
+</body>
+</html>
