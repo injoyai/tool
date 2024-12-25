@@ -3,9 +3,7 @@ module github.com/injoyai/tool/timer
 go 1.20
 
 require (
-	github.com/getlantern/systray v1.2.2
 	github.com/go-ole/go-ole v1.3.0
-	github.com/injoyai/base v1.0.19
 	github.com/injoyai/conv v1.1.13
 	github.com/injoyai/goutil v0.0.0-20241224035909-0d3a5c3be3a1
 	github.com/injoyai/logs v1.0.9
@@ -27,6 +25,7 @@ require (
 	github.com/getlantern/hex v0.0.0-20190417191902-c6586a6fe0b7 // indirect
 	github.com/getlantern/hidden v0.0.0-20190325191715-f02dbb02be55 // indirect
 	github.com/getlantern/ops v0.0.0-20190325191751-d70cb0d6f85f // indirect
+	github.com/getlantern/systray v1.2.2 // indirect
 	github.com/glebarez/go-sqlite v1.21.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4 // indirect
@@ -35,6 +34,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/injoyai/base v1.0.19 // indirect
 	github.com/injoyai/io v0.1.8 // indirect
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect

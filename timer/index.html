@@ -6,56 +6,53 @@
     <title>定时任务</title>
     <style>
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
             margin: 0;
-            padding: 20px
+            padding: 20px;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 830px;
             margin: 0 auto;
             background: #fff;
-            padding: 30px;
+            padding: 15px;
             border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, .08)
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            position: relative;
         }
 
         h1 {
             text-align: center;
-            color: #1a73e8;
-            font-size: 28px;
-            margin-bottom: 30px
-        }
-
-        .timer-form {
-            margin-bottom: 25px;
-            display: flex;
-            gap: 10px
+            color: #1a1a1a;
+            margin: 10px 0 20px;
+            font-size: 1.8em;
         }
 
         button {
-            padding: 12px 24px;
-            background: #1a73e8;
-            color: #fff;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            transition: .3s
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        button:hover {
-            background: #1557b0;
-            transform: translateY(-1px)
+        .timer-form {
+            margin-bottom: 20px;
         }
 
-        .refresh {
-            background: #34a853
+        .timer-form button {
+            padding: 8px 16px;
+            background-color: #4f46e5;
+            color: #fff;
+            margin-right: 12px;
+            font-size: 13px;
         }
 
-        .refresh:hover {
-            background: #2d8544
+        .timer-form button:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
         }
 
         table {
@@ -63,178 +60,292 @@
             border-collapse: separate;
             border-spacing: 0;
             margin-top: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-            table-layout: fixed
         }
 
         th, td {
-            padding: 2px 8px;
+            padding: 8px 6px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 12px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1
-        }
-
-        th:nth-child(1), td:nth-child(1) {
-            width: 8%;
-        }
-
-        th:nth-child(2), td:nth-child(2) {
-            width: 15%;
-        }
-
-        th:nth-child(3), td:nth-child(3) {
-            width: 15%;
-        }
-
-        th:nth-child(4), td:nth-child(4) {
-            width: 25%;
-        }
-
-        th:nth-child(5), td:nth-child(5) {
-            width: 10%;
-        }
-
-        th:nth-child(6), td:nth-child(6) {
-            width: 15%;
-        }
-
-        th:nth-child(7), td:nth-child(7) {
-            width: 12%;
         }
 
         th {
-            background: #f8f9fa;
+            background-color: #f8fafc;
             font-weight: 600;
-            color: #5f6368
+            color: #4b5563;
         }
 
         tr:hover {
-            background: #f8f9fa
+            background-color: #f9fafb;
+        }
+
+        th:nth-child(1), td:nth-child(1) { width: 40px; min-width: 40px; }
+        th:nth-child(2), td:nth-child(2) { width: 80px; min-width: 80px; max-width: 80px; }
+        th:nth-child(3), td:nth-child(3) { width: 100px; min-width: 100px; max-width: 100px; }
+        th:nth-child(4), td:nth-child(4) { width: 200px; min-width: 200px; max-width: 200px; }
+        th:nth-child(5), td:nth-child(5) { width: 80px; min-width: 80px; text-align: center; }
+        th:nth-child(6), td:nth-child(6) { width: 120px; min-width: 120px; }
+        th:nth-child(7), td:nth-child(7) { width: 80px; min-width: 80px; }
+
+        .actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .actions button {
+            padding: 3px 6px;
+            font-size: 12px;
+            min-width: 35px;
         }
 
         .actions .edit {
-            background: #fbbc05;
-            margin-right: 4px
+            background-color: #eab308;
+            color: #fff;
+        }
+
+        .actions .edit:hover {
+            background-color: #ca8a04;
         }
 
         .actions .delete {
-            background: #ea4335
+            background-color: #ef4444;
+            color: #fff;
+        }
+
+        .actions .delete:hover {
+            background-color: #dc2626;
         }
 
         .switch {
-            width: 44px;
-            height: 24px
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            margin: 0 auto;
+        }
+
+        .switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
         }
 
         .slider {
-            background: #dadce0
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
         }
 
         .slider:before {
-            height: 18px;
-            width: 18px;
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
             left: 3px;
-            bottom: 3px
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
         }
 
         input:checked + .slider {
-            background: #1a73e8
+            background-color: #28a745;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(16px);
         }
 
         .modal {
             display: none;
             position: fixed;
-            z-index: 9000;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, .4);
-            padding-top: 60px
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
-            background: #fff;
-            margin: 5% auto;
-            padding: 25px;
-            width: 95%;
-            max-width: 800px;
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, .15);
             position: relative;
+            background-color: #fff;
+            margin: 60px auto;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: modalSlideDown 0.3s ease;
         }
 
         .modal-content h2 {
-            color: #1a73e8;
-            margin-bottom: 20px
+            margin: 0 0 20px;
+            color: #1a1a1a;
+            font-size: 1.3em;
+            text-align: center;
+            font-weight: 600;
         }
 
-        input, .modal-content button {
+        .modal-content .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 6px;
+            color: #4b5563;
+            font-size: 0.9em;
+            font-weight: 500;
+            text-align: left;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #dadce0;
+            padding: 8px;
+            border: 1px solid #e5e7eb;
             border-radius: 6px;
-            font-size: 14px
+            font-size: 13px;
+            transition: all 0.2s ease;
+            background-color: #f9fafb;
+        }
+
+        .modal-content textarea {
+            min-height: 150px;
+            height: 150px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.4;
+            resize: none;
+            color: #d4d4d4;
+            padding: 10px;
+            overflow-y: auto;
+            white-space: pre;
+            tab-size: 4;
+        }
+
+        .modal-content textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content textarea::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        .modal-content textarea::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        .modal-content textarea::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
+        .modal-content input:focus,
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 10px 20px;
+            background-color: #4f46e5;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 20px;
+        }
+
+        .modal-content button:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .close {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            color: #9ca3af;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close:hover {
+            color: #4b5563;
+            background-color: #f3f4f6;
         }
 
         .notification {
-            padding: 15px 25px;
-            background: #1a73e8;
-            color: #fff;
-            border-radius: 8px;
             position: fixed;
             top: 20px;
-            right: 20px
+            right: 20px;
+            padding: 12px 20px;
+            background-color: #10b981;
+            color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s forwards, fadeOut 0.5s 1.5s forwards;
+            pointer-events: none;
         }
 
-        .code-cell {
-            height: 100px;
-            position: relative;
-            overflow: hidden
-        }
-
-        .editor-container {
-            position: relative;
-            z-index: 9002;
-            margin: 15px 0;
-            height: 120px;
-            overflow: hidden;
-        }
-
-        .actions button {
-            padding: 4px 8px;
-            margin: 0 2px;
-            font-size: 12px;
-        }
-
-        .close-btn {
+        td[title]:hover::after {
+            content: attr(title);
             position: absolute;
-            right: 10px;
-            top: 10px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-            width: auto;
-            color: #666;
+            left: 0;
+            top: 100%;
+            background: #333;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            z-index: 1000;
+            max-width: 300px;
+            word-wrap: break-word;
+            white-space: normal;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .close-btn:hover {
-            color: #333;
-            background: none;
-            transform: none;
+        @keyframes modalSlideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -255,239 +366,178 @@
             <th>操作</th>
         </tr>
         </thead>
-        <tbody id="timerTable"></tbody>
+        <tbody id="timerTable">
+        </tbody>
     </table>
 </div>
+
 <div id="addModal" class="modal">
     <div class="modal-content">
-        <button class="close-btn" onclick="this.closest('.modal').style.display='none'">&times;</button>
+        <span class="close">&times;</span>
         <h2>添加定时任务</h2>
-        <input type="text" id="addName" placeholder="���称">
-        <input type="text" id="addCronExpression" placeholder="Cron表达式">
-        <div class="editor-container"><textarea id="addExecutionContent"></textarea></div>
-        <button id="addTimer">添加</button>
+        <div class="form-group">
+            <label for="addName">名称</label>
+            <input type="text" id="addName" placeholder="请输入任务名称">
+        </div>
+        <div class="form-group">
+            <label for="addCronExpression">Cron表达式</label>
+            <input type="text" id="addCronExpression" placeholder="请输入Cron表达式">
+        </div>
+        <div class="form-group">
+            <label for="addExecutionContent">执行内容</label>
+            <textarea id="addExecutionContent" placeholder="请输入执行内容"></textarea>
+        </div>
+        <button id="addTimer">添加任务</button>
     </div>
 </div>
+
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <button class="close-btn" onclick="this.closest('.modal').style.display='none'">&times;</button>
+        <span class="close">&times;</span>
         <h2>修改定时任务</h2>
-        <input type="text" id="editName" placeholder="名称">
-        <input type="text" id="editCronExpression" placeholder="Cron表达式">
-        <div class="editor-container"><textarea id="editExecutionContent"></textarea></div>
-        <button id="saveChanges">保存</button>
+        <div class="form-group">
+            <label for="editName">名称</label>
+            <input type="text" id="editName" placeholder="请输入任务名称">
+        </div>
+        <div class="form-group">
+            <label for="editCronExpression">Cron表达式</label>
+            <input type="text" id="editCronExpression" placeholder="请输入Cron表达式">
+        </div>
+        <div class="form-group">
+            <label for="editExecutionContent">执行内容</label>
+            <textarea id="editExecutionContent" placeholder="请输入执行内容"></textarea>
+        </div>
+        <button id="saveChanges">保存修改</button>
     </div>
 </div>
+
 <script>
-    let addEditor, editEditor, editors = new Set();
-    const cmConfig = {
-        mode: 'javascript',
-        theme: 'monokai',
-        lineNumbers: !0,
-        lineWrapping: !0,
-        viewportMargin: Infinity
-    };
+    const addModal = document.getElementById('addModal');
+    const editModal = document.getElementById('editModal');
+    const addBtn = document.getElementById('openAddModal');
+    const closeAdd = addModal.getElementsByClassName('close')[0];
+    const closeEdit = editModal.getElementsByClassName('close')[0];
 
-    function initEditor(t, e = {}) {
-        const editor = CodeMirror.fromTextArea(t, {
-            ...cmConfig,
-            ...e,
-            viewportMargin: 1
-        });
-        
-        if (e.readOnly === 'nocursor') {
-            editor.setSize(null, 24);
-        } else {
-            editor.setSize(null, e.height || 200);
-        }
-
-        const wrapper = editor.getWrapperElement();
-        const newWrapper = wrapper.cloneNode(!0);
-        wrapper.parentNode.replaceChild(newWrapper, wrapper);
-
-        // 添加 passive 事件监听器
-        newWrapper.addEventListener('wheel', e => e.stopPropagation(), {passive: !0});
-        newWrapper.addEventListener('touchstart', e => e.stopPropagation(), {passive: !0});
-        newWrapper.addEventListener('touchmove', e => e.stopPropagation(), {passive: !0});
-
-        // 修复递归调用问题
-        const originalOn = editor.on;
-        editor.on = function (type, handler) {
-            if (type === 'mousewheel' || type === 'touchstart' || type === 'touchmove') {
-                return handler;
-            }
-            return originalOn.call(this, type, handler);
-        };
-
-        editor.getWrapperElement = () => newWrapper;
-        return editor;
+    addBtn.onclick = function () {
+        addModal.style.display = "block";
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        addEditor = initEditor(document.getElementById('addExecutionContent'), {
-            autoFocus: !0,
-            viewportMargin: 1,
-            height: "100px"
-        });
-        editEditor = initEditor(document.getElementById('editExecutionContent'), {
-            autoFocus: !0,
-            viewportMargin: 1,
-            height: "100px"
-        });
-        
-        // 设置编辑器大小
-        addEditor.setSize(null, 100);
-        editEditor.setSize(null, 100);
-        
-        [addEditor, editEditor].forEach(t => t.on('focus', () => t.refresh()));
-    }, !0);
+    closeAdd.onclick = function () {
+        addModal.style.display = "none";
+    }
 
-    const addModal = document.getElementById('addModal'), editModal = document.getElementById('editModal');
-    document.getElementById('openAddModal').onclick = () => {
-        addModal.style.display = 'block', setTimeout(() => {
-            addEditor.refresh(), addEditor.focus()
-        }, 100)
-    };
-    window.onclick = t => {
-        t.target == addModal && (addModal.style.display = 'none'), t.target == editModal && (editModal.style.display = 'none')
-    };
-    document.getElementById('addTimer').onclick = () => {
+    closeEdit.onclick = function () {
+        editModal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == addModal) {
+            addModal.style.display = "none";
+        }
+        if (event.target == editModal) {
+            editModal.style.display = "none";
+        }
+    }
+
+    document.getElementById('addTimer').addEventListener('click', () => {
         const name = document.getElementById('addName').value;
         const cron = document.getElementById('addCronExpression').value;
-        const content = addEditor.getValue();
+        const content = document.getElementById('addExecutionContent').value;
 
-        // 添加表单验证
-        if (!name.trim()) {
-            notice('请输入任务名称');
-            return;
-        }
+        addTimer(name, cron, content, false)
 
-        if (!cron.trim()) {
-            notice('请输入Cron表达式');
-            return;
-        }
-
-        console.log('添加定时任务:', {
-            name: name,
-            cron: cron,
-            content: content
-        });
-
-        addTimer(name, cron, content, false);
-
-        // 清空表单
         document.getElementById('addName').value = '';
         document.getElementById('addCronExpression').value = '';
-        addEditor.setValue('');
-        addModal.style.display = 'none';
-    };
-    document.getElementById('refreshAll').onclick = function () {
+        document.getElementById('addExecutionContent').value = '';
+        addModal.style.display = "none";
+    });
+
+    document.getElementById('refreshAll').addEventListener('click', () => {
         refresh()
-    };
+    });
 
-    function loadingTimer(t, e, n, o, r, i) {
-        const d = document.createElement('tr');
-        d.innerHTML = `
-        <td>${t}</td>
-        <td>${e}</td>
-        <td>${n}</td>
-        <td><div class="code-cell" style="height:24px;min-height:24px"><textarea></textarea></div></td>
-        <td><label class="switch"><input type="checkbox" ${r?'checked':''} onchange="toggleStatus(this)"><span class="slider"></span></label></td>
-        <td>${i}</td>
-        <td class="actions">
-            <button class="edit" onclick="openEditModal(this)">修改</button>
-            <button class="delete" onclick="deleteTimer(this)">删除</button>
-        </td>
-    `;
-        document.getElementById('timerTable').appendChild(d);
-        
-        // 修复编辑器初始化
-        const cell = d.querySelector('.code-cell');
-        const textarea = cell.querySelector('textarea');
-        const editor = initEditor(textarea, {
-            value: o,
-            readOnly: 'nocursor',
-            lineNumbers: false,
-            viewportMargin: 1
-        });
-        
-        // 存储编辑器引用
-        cell.editor = editor;
-        editors.add(editor);
+    function loadingTimer(id, name, cron, content, enable, next) {
+        const table = document.getElementById('timerTable');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+                <td>${id}</td>
+                <td title="${name}">${name}</td>
+                <td title="${cron}">${cron}</td>
+                <td title="${content}">${content}</td>
+                <td><label class="switch"><input type="checkbox" ${enable ? 'checked' : ''} onchange="toggleStatus(this)"><span class="slider"></span></label></td>
+                <td>${next}</td>
+                <td class="actions">
+                    <button class="edit" onclick="openEditModal(this)">修改</button>
+                    <button class="delete" onclick="deleteTimer(this)">删除</button>
+                </td>
+            `;
+        table.appendChild(row);
     }
 
-    function toggleStatus(t) {
-        const e = t.closest('tr');
-        enableTimer(e.children[0].innerText, t.checked)
+    function toggleStatus(checkbox) {
+        const row = checkbox.closest('tr');
+        enableTimer(row.children[0].innerText, checkbox.checked)
     }
 
-    function openEditModal(t) {
-        const row = t.closest('tr');
+    function openEditModal(button) {
+        const row = button.closest('tr');
         const id = row.children[0].innerText;
         const name = row.children[1].innerText;
         const cron = row.children[2].innerText;
-        const content = row.querySelector('.code-cell').editor.getValue();
+        const content = row.children[3].innerText;
 
-        // 填充表单
         document.getElementById('editName').value = name;
         document.getElementById('editCronExpression').value = cron;
-        editEditor.setValue(content);
-        editModal.style.display = 'block';
+        document.getElementById('editExecutionContent').value = content;
 
-        // 刷新编辑器
-        setTimeout(() => {
-            editEditor.refresh();
-            editEditor.focus();
-        }, 100);
+        editModal.style.display = "block";
 
-        // 修复保存按钮事件监听
-        const saveButton = document.getElementById('saveChanges');
-        saveButton.onclick = function() {
-            const newName = document.getElementById('editName').value;
-            const newCron = document.getElementById('editCronExpression').value;
-            const newContent = editEditor.getValue();
+        document.getElementById('saveChanges').onclick = function () {
+            updateTimer(id,
+                document.getElementById('editName').value,
+                document.getElementById('editCronExpression').value,
+                document.getElementById('editExecutionContent').value);
 
-            // 添加表单验证
-            if (!newName.trim()) {
-                notice('请输入任务名称');
-                return;
-            }
-            
-            if (!newCron.trim()) {
-                notice('请输入Cron表达式');
-                return;
-            }
-
-            updateTimer(id, newName, newCron, newContent);
-            editModal.style.display = 'none';
-        };
+            editModal.style.display = "none";
+        }
     }
 
-    function updateTimer(t, e, n, o) {
-        
+    function deleteTimer(button) {
+        const row = button.closest('tr');
+        row.remove();
+        delTimer(row.children[0].innerText);
     }
 
-    function deleteTimer(t) {
-        const e = t.closest('tr');
-        e.remove(), delTimer(e.children[0].innerText)
+    function addTimer(name, cron, content, enable) {
+    }
+
+    function updateTimer(id, name, cron, content) {
+    }
+
+    function enableTimer(id,enable) {
+    }
+
+    function delTimer(id) {
+    }
+
+    function refresh() {
     }
 
     function clearTimer() {
-        editors.forEach(t => {
-            t && t.toTextArea()
-        }), editors.clear(), document.getElementById('timerTable').innerHTML = ''
+        const table = document.getElementById('timerTable');
+        table.innerText = '';
     }
 
-    function notice(t) {
-        const e = document.createElement('div');
-        e.className = 'notification', e.innerText = t, document.body.appendChild(e), setTimeout(() => document.body.removeChild(e), 2e3)
-    }
+    function notice(msg){
+        var notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.innerText = msg;
+        document.body.appendChild(notification);
 
-    window.addEventListener('beforeunload', () => {
-        addEditor && (addEditor.toTextArea(), addEditor = null), editEditor && (editEditor.toTextArea(), editEditor = null), editors.forEach(t => {
-            t && t.toTextArea()
-        }), editors.clear()
-    }, {passive: !0});
+        setTimeout(function() {
+            document.body.removeChild(notification);
+        }, 2000);
+    }
 </script>
 </body>
 </html>

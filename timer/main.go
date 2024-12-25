@@ -3,6 +3,8 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"net"
+
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/database/sqlite"
 	"github.com/injoyai/goutil/g"
@@ -16,7 +18,6 @@ import (
 	"github.com/injoyai/goutil/task"
 	"github.com/injoyai/logs"
 	"github.com/injoyai/lorca"
-	"net"
 	"xorm.io/xorm"
 )
 
@@ -109,14 +110,11 @@ func main() {
 		func(s *tray.Tray) {
 
 			x := s.AddMenu().SetName("显示").SetIco(IcoMenuTimer)
-			defer func() {
-				x.ClickedCh <- struct{}{}
-			}()
 			x.OnClick(func(m *tray.Menu) {
 
-				err := lorca.Run(&lorca.Config{
-					Width:  1080,
-					Height: 1080,
+				lorca.Run(&lorca.Config{
+					Width:  930,
+					Height: 680,
 					Index:  html,
 				}, func(app lorca.APP) error {
 
@@ -129,7 +127,6 @@ func main() {
 					t := &handler{app: app}
 
 					app.Bind("addTimer", func(name, cron, content string, enable bool) {
-						logs.Debug("addTimer")
 						defer t.Refresh()
 						if err := t.AddTimer(name, cron, content, enable); err != nil {
 							app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
@@ -138,7 +135,6 @@ func main() {
 					})
 
 					app.Bind("updateTimer", func(id, name, cron, content string) {
-						logs.Debug("updateTimer")
 						defer t.Refresh()
 						if err := t.UpdateTimer(id, name, cron, content); err != nil {
 							app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
@@ -147,7 +143,6 @@ func main() {
 					})
 
 					app.Bind("enableTimer", func(id string, enable bool) {
-						logs.Debug("enableTimer")
 						defer t.Refresh()
 						if err := t.EnableTimer(id, enable); err != nil {
 							app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
@@ -156,7 +151,6 @@ func main() {
 					})
 
 					app.Bind("delTimer", func(id string) {
-						logs.Debug("delTimer")
 						defer t.Refresh()
 						if err := t.DelTimer(id); err != nil {
 							app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
@@ -169,7 +163,6 @@ func main() {
 					t.Refresh()
 					return nil
 				})
-				logs.Debug(err)
 			})
 
 			tray.WithStartup()(s)
@@ -188,13 +181,12 @@ type handler struct {
 }
 
 func (this *handler) Refresh() {
-	logs.Debug("Refresh")
-	this.app.Eval("notice('刷新')")
 	data := []*Timer(nil)
 	if err := DB.Find(&data); err != nil {
 		this.app.Eval(fmt.Sprintf(`alert("%s");`, err.Error()))
 		return
 	}
+	//defer this.app.Eval(fmt.Sprintf(`notice("刷新成功");`))
 	this.app.Eval("clearTimer()")
 	for _, v := range data {
 		next := ""
