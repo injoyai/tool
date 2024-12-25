@@ -165,8 +165,8 @@ func main() {
 				})
 			})
 
+			tray.WithHint("定时任务")(s)
 			tray.WithStartup()(s)
-
 			s.AddMenu().SetName("退出").SetIco(IcoMenuQuit).OnClick(func(m *tray.Menu) {
 				s.Close()
 			})
