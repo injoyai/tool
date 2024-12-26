@@ -95,7 +95,7 @@ func init() {
 
 			default:
 				return nil, notice.DefaultWindows.Publish(&notice.Message{
-					Content: target,
+					Content: msg,
 				})
 
 			}
