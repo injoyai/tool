@@ -1,5 +1,49 @@
 package main
 
+import (
+	"context"
+	_ "embed"
+	"fmt"
+	"github.com/injoyai/base/chans"
+	"github.com/injoyai/conv"
+	"github.com/injoyai/goutil/oss/tray"
+	"github.com/injoyai/proxy/core"
+	"github.com/injoyai/proxy/forward"
+	"github.com/injoyai/tool/config"
+)
+
+func Run(f *forward.Forward) {
+
+	tray.Run(
+		func(s *tray.Tray) {
+
+			r := chans.NewRerun(func(ctx context.Context) {
+				s.SetHint(fmt.Sprintf("状态: 运行中\n端口: %s\n地址: %s", f.Listen.Port, f.Forward.Address))
+				err := f.Run(ctx)
+				s.SetHint(fmt.Sprintf("状态: %v\n端口: %s\n地址: %s", err, f.Listen.Port, f.Forward.Address))
+			})
+
+			r.Rerun()
+
+			s.AddMenu().SetName("配置").OnClick(func(m *tray.Menu) {
+				config.GUI(config.New(configPath, config.Natures{
+					{Name: "监听端口", Key: "port", Type: "string"},
+					{Name: "转发地址", Key: "address", Type: "string"},
+				}).SetWidthHeight(720, 345).OnSaved(func(m *conv.Map) {
+					f.Listen = core.NewListenTCP(m.GetInt("port"))
+					f.Forward = core.NewDialTCP(m.GetString("address"))
+					r.Rerun()
+				}))
+			})
+
+		},
+		tray.WithIco(ico),
+		tray.WithLabel(Version),
+		tray.WithStartup(),
+		tray.WithExit(),
+	)
+}
+
 var ico = []byte{
 	0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x20, 0x20, 0x00, 0x00, 0x01, 0x00,
 	0x20, 0x00, 0xA8, 0x10, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x28, 0x00,
