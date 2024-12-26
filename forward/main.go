@@ -48,10 +48,9 @@ func main() {
 		tray.WithIco(ico),
 		tray.WithHint("端口转发"),
 		func(s *tray.Tray) {
-			x := s.AddMenu().SetName("配置").OnClick(func(m *tray.Menu) {
+			s.AddMenu().SetName("配置").OnClick(func(m *tray.Menu) {
 				logs.PrintErr(gui())
 			})
-			x.ClickedCh <- struct{}{}
 		},
 		tray.WithStartup(),
 		tray.WithSeparator(),
