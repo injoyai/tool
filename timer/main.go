@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/database/sqlite"
@@ -51,19 +52,58 @@ func init() {
 			}
 		})
 	}
+
 	Script.SetFunc("ping", func(args *script.Args) (interface{}, error) {
 		result, err := ip.Ping(args.GetString(1), args.Get(2).Second(1))
+		logs.Debug(result, err)
 		return result.String(), err
 	})
 
 	Script.SetFunc("notice", func(args *script.Args) (interface{}, error) {
+		msg := args.GetString(1)
 		target := args.GetString(2)
-		notice.DefaultWindows.Publish(&notice.Message{
-			Content: args.GetString(1),
-			Target:  target,
-		})
-		return nil, nil
+
+		switch target {
+		case "popup", "pop":
+			return nil, notice.DefaultWindows.Publish(&notice.Message{
+				Content: msg,
+				Target:  target,
+			})
+
+		default:
+
+			switch {
+			case strings.HasPrefix(target, "wechat:friend:"):
+				err := http.Url(fmt.Sprintf("http://%s/api/notice", args.GetString(3))).
+					SetToken("147258369").
+					SetContentType("application/json").
+					SetBody(g.Map{
+						"output":  []string{target},
+						"content": msg,
+					}).Debug().Post().Err()
+				return nil, err
+
+			case strings.HasPrefix(target, "wechat:group:"):
+				err := http.Url(fmt.Sprintf("http://%s/api/notice", args.GetString(3))).
+					SetToken("147258369").
+					SetContentType("application/json").
+					SetBody(g.Map{
+						"output":  []string{target},
+						"content": msg,
+					}).Debug().Post().Err()
+				return nil, err
+
+			default:
+				return nil, notice.DefaultWindows.Publish(&notice.Message{
+					Content: target,
+				})
+
+			}
+
+		}
+
 	})
+
 	Script.SetFunc("dialTCP", func(args *script.Args) (interface{}, error) {
 		address := args.GetString(1)
 		timeout := args.Get(2).Second(2)
@@ -73,32 +113,6 @@ func init() {
 		}
 		c.Close()
 		return "成功", nil
-	})
-	Script.SetFunc("notice_wechat_friend", func(args *script.Args) (interface{}, error) {
-		address := args.GetString(1)
-		target := args.GetString(2)
-		msg := args.GetString(3)
-		err := http.Url(fmt.Sprintf("http://%s/api/notice", address)).
-			SetToken("147258369").
-			SetContentType("application/json").
-			SetBody(g.Map{
-				"output":  []string{"wechat:friend:" + target},
-				"content": msg,
-			}).Debug().Post().Err()
-		return nil, err
-	})
-	Script.SetFunc("notice_wechat_group", func(args *script.Args) (interface{}, error) {
-		address := args.GetString(1)
-		target := args.GetString(2)
-		msg := args.GetString(3)
-		err := http.Url(fmt.Sprintf("http://%s/api/notice", address)).
-			SetToken("147258369").
-			SetContentType("application/json").
-			SetBody(g.Map{
-				"output":  []string{"wechat:group:" + target},
-				"content": msg,
-			}).Debug().Post().Err()
-		return nil, err
 	})
 
 }
