@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Stream via WebSocket</title>
+    <style>
+        /* 基本页面样式 */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        /* 卡片容器 */
+        .card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            max-width: 700px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* 卡片标题 */
+        .card h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* 视频播放器样式 */
+        video {
+            border-radius: 8px;
+            width: 100%;
+            height: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 按钮样式 */
+        .card button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .card button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .card {
+                padding: 15px;
+            }
+
+            .card h1 {
+                font-size: 1.5rem;
+            }
+
+            video {
+                border-radius: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>Video Stream</h1>
+    <video id="videoPlayer" controls>
+        Your browser does not support the video tag.
+    </video>
+    <button onclick="startStreaming()">Start Streaming</button>
+</div>
+
+<script>
+    const videoPlayer = document.getElementById("videoPlayer");
+    const ws = new WebSocket("ws://localhost:8090/video");
+
+    let videoBuffer = [];
+    let isStreaming = false;
+
+    // WebSocket 连接成功
+    ws.onopen = function() {
+        console.log("WebSocket connected.");
+    };
+
+    // 接收到二进制数据时
+    ws.onmessage = function(event) {
+        if (event.data instanceof ArrayBuffer) {
+            // 将二进制数据推送到视频缓冲区
+            videoBuffer.push(event.data);
+
+            // 如果视频缓冲区已经有数据，尝试将其播放
+            if (videoBuffer.length > 0 && !isStreaming) {
+                const videoBlob = new Blob(videoBuffer, { type: "video/mp4" });
+                const videoUrl = URL.createObjectURL(videoBlob);
+                videoPlayer.src = videoUrl;
+                isStreaming = true;
+                videoPlayer.play(); // 播放视频
+            }
+        }
+    };
+
+    // WebSocket 关闭时
+    ws.onclose = function() {
+        console.log("WebSocket connection closed.");
+    };
+
+    // WebSocket 错误时
+    ws.onerror = function(error) {
+        console.error("WebSocket error:", error);
+    };
+
+    // 开始视频流
+    function startStreaming() {
+        console.log("Starting video stream...");
+        if (!isStreaming) {
+            // 强制开始播放（如果没有播放）
+            videoPlayer.play();
+        }
+    }
+</script>
+</body>
+</html>

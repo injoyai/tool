@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLS 播放器</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            background: #f0f2f5;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .player-container {
+            max-width: 800px;
+            margin: 20px auto;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .player-container:hover {
+            /* 移除 transform */
+        }
+        
+        #video-player {
+            width: 100%;
+            background: #000;
+            border-radius: 12px 12px 0 0;
+            min-height: 400px;
+        }
+        
+        .controls {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+        
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2em;
+            margin: 30px 0;
+            font-weight: 600;
+        }
+        
+        .status {
+            color: #34495e;
+            font-size: 14px;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+
+        #hls-url {
+            width: 80%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            margin-right: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        #hls-url:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        /* 自定义视频控制器样式 */
+        video::-webkit-media-controls-panel {
+            background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.4));
+        }
+
+        video::-webkit-media-controls-play-button,
+        video::-webkit-media-controls-pause-button {
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+
+        video::-webkit-media-controls-current-time-display,
+        video::-webkit-media-controls-time-remaining-display {
+            color: white;
+        }
+
+        video::-webkit-media-controls-timeline {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            height: 3px;
+        }
+
+        video::-webkit-media-controls-volume-slider {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            padding: 0;
+        }
+
+        video::-webkit-media-controls-mute-button,
+        video::-webkit-media-controls-fullscreen-button {
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+
+        /* 添加视频hover效果 */
+        #video-player:hover {
+            cursor: pointer;
+        }
+
+        /* 调整视频控件的显示/隐藏 */
+        #video-player::-webkit-media-controls {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #video-player:hover::-webkit-media-controls {
+            opacity: 1;
+        }
+
+        /* 添加响应式设计 */
+        @media (max-width: 768px) {
+            .player-container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+
+            .title {
+                font-size: 1.5em;
+                margin: 20px 0;
+            }
+
+            #hls-url {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">HLS 播放器</h1>
+    <div class="player-container">
+        <video id="video-player" controls></video>
+        <div class="controls">
+            <div class="status" id="status">准备就绪</div>
+            <input type="text" id="hls-url" placeholder="输入HLS流地址 (.m3u8)" style="width: 80%;">
+            <button onclick="loadStream()">加载</button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video-player');
+        const status = document.getElementById('status');
+        
+        function loadStream() {
+            const url = document.getElementById('hls-url').value;
+            if (!url) {
+                alert('请输入有效的HLS流地址');
+                return;
+            }
+            
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    status.textContent = '视频加载成功';
+                    video.play();
+                });
+                
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    status.textContent = '加载错误: ' + data.type;
+                });
+            } else {
+                status.textContent = '您的浏览器不支持HLS播放';
+            }
+        }
+        
+        // 测试用的HLS流地址
+        document.getElementById('hls-url').value = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+    </script>
+</body>
+</html> 

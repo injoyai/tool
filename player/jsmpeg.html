@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>视频监控系统</title>
+    <script src="jsmpeg.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .video-card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px -2px rgba(0, 0, 0, 0.16),
+                        0 3px 6px 0 rgba(0, 0, 0, 0.12),
+                        0 5px 12px 4px rgba(0, 0, 0, 0.09);
+        }
+
+        .video-header {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f1f1f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #000;
+            position: relative;
+            z-index: 2;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.7);
+            background: #000;
+            z-index: 3;
+        }
+
+        .video-placeholder .material-icons {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .video-placeholder.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .video-controls {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+            color: #1890ff;
+        }
+
+        .btn.active {
+            color: #1890ff;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 16px;
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+            font-size: 12px;
+        }
+
+        .status-badge.error {
+            background: #fff2f0;
+            border-color: #ffccc7;
+            color: #ff4d4f;
+        }
+
+        .material-icons {
+            font-size: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .video-wrapper.playing .video-placeholder {
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-grid" id="videoGrid">
+        <!-- 视频卡片将通过 JS 动态生成 -->
+    </div>
+
+    <script>
+        // 定义播放器配置列表
+        const streamList = [
+            {
+                id: 'camera1',
+                name: '摄像头 01',
+                url: 'ws://localhost:8080/ws'
+            },
+            {
+                id: 'camera2',
+                name: '摄像头 02',
+                url: 'ws://localhost:8080/ws'
+            },
+            {
+                id: 'camera3',
+                name: '摄像头 03',
+                url: 'ws://localhost:8080/ws'
+            },
+            {
+                id: 'camera4',
+                name: '摄像头 04',
+                url: 'ws://localhost:8080/ws'
+            },
+            {
+                id: 'camera5',
+                name: '摄像头 05',
+                url: 'ws://localhost:8080/ws'
+            },
+            {
+                id: 'camera6',
+                name: '摄像头 06',
+                url: 'ws://localhost:8080/ws'
+            }
+        ];
+
+        // 存储所有播放器实例
+        const players = new Map();
+
+        // 创建视频卡片的 HTML
+        function createVideoCard(stream) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.innerHTML = `
+                <div class="video-header">
+                    <div class="video-title">
+                        <span class="material-icons">videocam</span>
+                        ${stream.name}
+                    </div>
+                    <div class="status-badge" id="status-${stream.id}">
+                        <span class="material-icons" style="font-size: 14px;">fiber_manual_record</span>
+                        正在直播
+                    </div>
+                </div>
+                
+                <div class="video-wrapper">
+                    <canvas id="canvas-${stream.id}"></canvas>
+                    <div class="video-placeholder" id="placeholder-${stream.id}">
+                        <div class="loading-spinner"></div>
+                        <span>正在连接视频流...</span>
+                    </div>
+                </div>
+
+                <div class="video-controls">
+                    <div class="control-buttons">
+                        <button class="btn" id="play-${stream.id}" onclick="togglePlay('${stream.id}')">
+                            <span class="material-icons">pause</span>
+                        </button>
+                        <button class="btn" onclick="toggleFullscreen('${stream.id}')">
+                            <span class="material-icons">fullscreen</span>
+                        </button>
+                    </div>
+                    <button class="btn">
+                        <span class="material-icons">more_vert</span>
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        // 初始化播放器
+        function initPlayer(stream) {
+            const options = {
+                canvas: document.getElementById(`canvas-${stream.id}`),
+                autoplay: true,
+                audio: false,
+                loop: true,
+                videoBufferSize: 1024 * 1024,
+                onPlay: () => {
+                    updateStatus(stream.id, true);
+                    hidePlaceholder(stream.id);
+                    document.querySelector(`#${stream.id} .video-wrapper`).classList.add('playing');
+                },
+                onPause: () => {
+                    updateStatus(stream.id, false);
+                    showPlaceholder(stream.id, 'pause');
+                    document.querySelector(`#${stream.id} .video-wrapper`).classList.remove('playing');
+                },
+                onError: (e) => {
+                    showError(stream.id);
+                    showPlaceholder(stream.id, 'error');
+                    console.error(`播放错误 [${stream.name}]:`, e);
+                    setTimeout(() => reconnectPlayer(stream), 5000);
+                }
+            };
+
+            const player = new JSMpeg.Player(stream.url, options);
+            players.set(stream.id, {
+                instance: player,
+                isPlaying: true
+            });
+        }
+
+        // 更新状态显示
+        function updateStatus(id, isActive) {
+            const statusBadge = document.getElementById(`status-${id}`);
+            const playBtn = document.getElementById(`play-${id}`);
+            
+            if (isActive) {
+                statusBadge.classList.remove('error');
+                statusBadge.innerHTML = `
+                    <span class="material-icons" style="font-size: 14px;">fiber_manual_record</span>
+                    正在直播
+                `;
+                playBtn.innerHTML = '<span class="material-icons">pause</span>';
+            } else {
+                statusBadge.innerHTML = `
+                    <span class="material-icons" style="font-size: 14px;">pause</span>
+                    已暂停
+                `;
+                playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
+            }
+        }
+
+        // 显示错误状态
+        function showError(id) {
+            const statusBadge = document.getElementById(`status-${id}`);
+            statusBadge.classList.add('error');
+            statusBadge.innerHTML = `
+                <span class="material-icons" style="font-size: 14px;">error</span>
+                连接错误
+            `;
+        }
+
+        // 切换播放/暂停
+        function togglePlay(id) {
+            const playerData = players.get(id);
+            if (playerData) {
+                if (playerData.isPlaying) {
+                    playerData.instance.pause();
+                } else {
+                    playerData.instance.play();
+                }
+                playerData.isPlaying = !playerData.isPlaying;
+            }
+        }
+
+        // 切换全屏
+        function toggleFullscreen(id) {
+            const canvas = document.getElementById(`canvas-${id}`);
+            if (!document.fullscreenElement) {
+                canvas.requestFullscreen().catch(err => {
+                    console.error(`全屏错误: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // 重连播放器
+        function reconnectPlayer(stream) {
+            const playerData = players.get(stream.id);
+            if (playerData) {
+                playerData.instance.destroy();
+                initPlayer(stream);
+            }
+        }
+
+        // 初始化所有播放器
+        function initializePlayers() {
+            const grid = document.getElementById('videoGrid');
+            streamList.forEach(stream => {
+                grid.appendChild(createVideoCard(stream));
+                initPlayer(stream);
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initializePlayers);
+
+        // 添加占位符控制函数
+        function hidePlaceholder(id) {
+            const placeholder = document.getElementById(`placeholder-${id}`);
+            if (placeholder) {
+                placeholder.classList.add('hidden');
+            }
+        }
+
+        function showPlaceholder(id, state = 'loading') {
+            const placeholder = document.getElementById(`placeholder-${id}`);
+            if (placeholder) {
+                placeholder.classList.remove('hidden');
+                
+                let content = '';
+                switch (state) {
+                    case 'pause':
+                        content = `
+                            <span class="material-icons">pause_circle_outline</span>
+                            <span>视频已暂停</span>
+                        `;
+                        break;
+                    case 'error':
+                        content = `
+                            <span class="material-icons">error_outline</span>
+                            <span>连接失败，正在重试...</span>
+                        `;
+                        break;
+                    default:
+                        content = `
+                            <div class="loading-spinner"></div>
+                            <span>正在连接视频流...</span>
+                        `;
+                }
+                placeholder.innerHTML = content;
+            }
+        }
+    </script>
+</body>
+</html> 
