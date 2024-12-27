@@ -43,7 +43,6 @@ func init() {
 }
 
 func main() {
-
 	tray.Run(
 		tray.WithIco(ico),
 		tray.WithHint("端口转发"),
@@ -56,8 +55,6 @@ func main() {
 		tray.WithSeparator(),
 		tray.WithExit(),
 	)
-
-	logs.Err(gui())
 }
 
 func gui() error {
