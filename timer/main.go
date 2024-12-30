@@ -94,6 +94,18 @@ func init() {
 
 	})
 
+	Script.SetFunc("dial", func(args *script.Args) (interface{}, error) {
+		network := args.GetString(1)
+		address := args.GetString(2)
+		timeout := args.Get(3).Second(2)
+		c, err := net.DialTimeout(network, address, timeout)
+		if err != nil {
+			return nil, err
+		}
+		c.Close()
+		return "成功", nil
+	})
+
 	Script.SetFunc("dialTCP", func(args *script.Args) (interface{}, error) {
 		address := args.GetString(1)
 		timeout := args.Get(2).Second(2)
@@ -103,6 +115,11 @@ func init() {
 		}
 		c.Close()
 		return "成功", nil
+	})
+
+	Script.SetFunc("print", func(args *script.Args) (interface{}, error) {
+		fmt.Println(args.Interfaces()...)
+		return nil, nil
 	})
 
 	data := []*Timer(nil)
