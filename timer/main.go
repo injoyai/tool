@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"github.com/injoyai/goutil/oss/shell"
 	"net"
 	"strings"
 
@@ -31,27 +32,16 @@ var (
 	Corn   = task.New().Start()
 )
 
+const Startup = "@startup"
+
 func init() {
 	logs.SetWriter(logs.Stdout)
 	DB.Sync2(new(Timer))
-	data := []*Timer(nil)
-	DB.Find(&data)
-	for i := range data {
-		v := data[i]
-		logs.Debug(v)
-		if !v.Enable {
-			continue
-		}
-		Corn.SetTask(conv.String(v.ID), v.Cron, func() {
-			logs.Trace(v.ExecText())
-			if _, err := Script.Exec(v.Content); err != nil {
-				notice.DefaultWindows.Publish(&notice.Message{
-					Title:   fmt.Sprintf("定时任务[%s]执行错误:", v.Name),
-					Content: err.Error(),
-				})
-			}
-		})
-	}
+
+	Script.SetFunc("start", func(args *script.Args) (interface{}, error) {
+		err := shell.Start2(args.GetString(1))
+		return nil, err
+	})
 
 	Script.SetFunc("ping", func(args *script.Args) (interface{}, error) {
 		result, err := ip.Ping(args.GetString(1), args.Get(2).Second(1))
@@ -114,6 +104,30 @@ func init() {
 		c.Close()
 		return "成功", nil
 	})
+
+	data := []*Timer(nil)
+	DB.Find(&data)
+	for i := range data {
+		v := data[i]
+		logs.Debug(v)
+		if !v.Enable {
+			continue
+		}
+		exec := func(v *Timer) {
+			logs.Trace(v.ExecText())
+			if _, err := Script.Exec(v.Content); err != nil {
+				notice.DefaultWindows.Publish(&notice.Message{
+					Title:   fmt.Sprintf("定时任务[%s]执行错误:", v.Name),
+					Content: err.Error(),
+				})
+			}
+		}
+		if v.Cron == Startup {
+			exec(v)
+			continue
+		}
+		Corn.SetTask(conv.String(v.ID), v.Cron, func() { exec(v) })
+	}
 
 }
 
@@ -221,7 +235,7 @@ func (this *handler) AddTimer(name, cron, content string, enable bool) error {
 	if _, err := DB.Insert(t); err != nil {
 		return err
 	}
-	if t.Enable {
+	if t.Enable && t.Cron != Startup {
 		if err := Corn.SetTask(conv.String(t.ID), t.Cron, func() {
 			if _, err := Script.Exec(t.Content); err != nil {
 				notice.DefaultWindows.Publish(&notice.Message{
@@ -250,7 +264,7 @@ func (this *handler) UpdateTimer(id, name, cron, content string) error {
 	}
 
 	Corn.DelTask(id)
-	if t.Enable {
+	if t.Enable && t.Cron != Startup {
 		if err := Corn.SetTask(id, t.Cron, func() {
 			if _, err := Script.Exec(t.Content); err != nil {
 				notice.DefaultWindows.Publish(&notice.Message{
@@ -277,7 +291,7 @@ func (this *handler) EnableTimer(id string, enable bool) error {
 		if _, err := session.ID(id).AllCols().Update(t); err != nil {
 			return err
 		}
-		if enable {
+		if enable && t.Cron != Startup {
 			if err := Corn.SetTask(id, t.Cron, func() {
 				if _, err := Script.Exec(t.Content); err != nil {
 					notice.DefaultWindows.Publish(&notice.Message{
