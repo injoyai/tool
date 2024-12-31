@@ -13,7 +13,7 @@ func New(filename string, natures Natures) *Config {
 	m := cfg.WithFile(filename).(*conv.Map)
 	return &Config{
 		Filename: filename,
-		Natures:  natures, // initNature(natures, m),
+		Natures:  natures,
 		m:        m,
 	}
 }
@@ -39,10 +39,16 @@ func (this *Config) OnSaved(onSaved func(m *conv.Map)) *Config {
 }
 
 func (this *Config) Get() []*Nature {
+	if this.m == nil {
+		this.m = cfg.WithFile(this.Filename).(*conv.Map)
+	}
 	return initNature(this.Natures, this.m)
 }
 
 func (this *Config) Save(m g.Map) error {
+	if this.m == nil {
+		this.m = cfg.WithFile(this.Filename).(*conv.Map)
+	}
 	for k, v := range m {
 		this.m.Set(k, v)
 	}
@@ -52,7 +58,7 @@ func (this *Config) Save(m g.Map) error {
 type Nature struct {
 	Name  string      `json:"name"`
 	Key   string      `json:"key"`
-	Value interface{} `json:"value"`
+	Value interface{} `json:"value"` //这个填写无效,会赋值为配置文件的值
 	Type  string      `json:"type"`
 }
 
