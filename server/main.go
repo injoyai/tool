@@ -81,8 +81,9 @@ func main() {
 
 			//加载自定义菜单
 			for k, v := range cfg.GetMap("custom_menu") {
+				cmd := conv.String(v)
 				s.AddMenu().SetName(k).OnClick(func(m *tray.Menu) {
-					shell.Run(conv.String(v))
+					shell.Run(cmd)
 				})
 			}
 
