@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -86,7 +85,7 @@ func (this *Server) HTTP(ctx context.Context, port int) error {
 						in.CheckErr(err)
 						files = append(files, &file.File{
 							Filename: filename,
-							Data:     base64.StdEncoding.EncodeToString(bs),
+							Data:     bs,
 						})
 					}()
 					break

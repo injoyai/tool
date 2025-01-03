@@ -1,7 +1,6 @@
 package file
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/injoyai/conv"
@@ -16,7 +15,7 @@ import (
 
 type File struct {
 	Filename string `json:"filename"` //文件路径
-	Data     string `json:"data"`     //文件内容
+	Data     []byte `json:"data"`     //文件内容
 	Restart  bool   `json:"restart"`  //是否重启,针对于可执行文件
 }
 
@@ -41,15 +40,9 @@ func Do(a any) error {
 
 		dir, _ := filepath.Split(v.Filename)
 
-		logs.Info("解析文件...")
-		fileBytes, err := base64.StdEncoding.DecodeString(v.Data)
-		if err != nil {
-			return err
-		}
-
 		zipPath := filepath.Join(dir, time.Now().Format("20060102150405.zip"))
 		logs.Info("保存文件:", zipPath)
-		if err := oss.New(zipPath, fileBytes); err != nil {
+		if err := oss.New(zipPath, v.Data); err != nil {
 			return fmt.Errorf("保存文件(%s)错误: %s", zipPath, err)
 		}
 
