@@ -33,12 +33,12 @@ func Do(a any) error {
 	}
 
 	for _, v := range files {
-		if v.Restart {
-			logs.Info("关闭文件:", v.Filename)
-			shell.Stop(v.Filename)
-		}
 
-		dir, _ := filepath.Split(v.Filename)
+		dir, name := filepath.Split(v.Filename)
+		if v.Restart {
+			logs.Info("关闭文件:", name)
+			shell.Stop(name)
+		}
 
 		zipPath := filepath.Join(dir, time.Now().Format("20060102150405.zip"))
 		logs.Info("保存文件:", zipPath)
@@ -46,12 +46,12 @@ func Do(a any) error {
 			return fmt.Errorf("保存文件(%s)错误: %s", zipPath, err)
 		}
 
-		logs.Info("解压文件:", dir)
+		logs.Infof("解压文件: '%s' -> '%s'\n", zipPath, dir)
 		if err := zip.Decode(zipPath, dir); err != nil {
 			return fmt.Errorf("解压文件(%s)到(%s)错误: %s", zipPath, dir, err)
 		}
 
-		logs.Info("删除压缩包:", dir)
+		logs.Info("删除压缩包:", zipPath)
 		os.Remove(zipPath)
 
 		if v.Restart {
