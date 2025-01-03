@@ -35,8 +35,20 @@ type Server struct {
 
 func (this *Server) Run(ctx context.Context) {
 	cfg.Init(cfg.WithFile(this.Filename))
-	go this.HTTP(ctx, cfg.GetInt("http_port"))
-	this.TCP(ctx, cfg.GetInt("tcp_port"))
+	go this.HTTP(ctx, cfg.GetInt("http.port"))
+	this.TCP(ctx, cfg.GetInt("tcp.port"))
+}
+
+func (this *Server) RunHTTP(ctx context.Context) {
+	cfg.Init(cfg.WithFile(this.Filename))
+	err := this.HTTP(ctx, cfg.GetInt("http.port"))
+	logs.Err(err)
+}
+
+func (this *Server) RunTCP(ctx context.Context) {
+	cfg.Init(cfg.WithFile(this.Filename))
+	err := this.TCP(ctx, cfg.GetInt("tcp.port"))
+	logs.Err(err)
 }
 
 func (this *Server) HTTP(ctx context.Context, port int) error {

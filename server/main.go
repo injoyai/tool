@@ -38,39 +38,49 @@ func main() {
 		Succ:     Succ,
 	}
 
-	rerun := chans.NewRerun(ss.Run)
-	rerun.Enable()
+	tcp := chans.NewRerun(ss.RunTCP)
+	http := chans.NewRerun(ss.RunHTTP)
+	tcp.Enable(cfg.GetBool("tcp.enable"))
+	http.Enable(cfg.GetBool("http.enable"))
 
 	tray.Run(
 		func(s *tray.Tray) {
 			s.SetHint("In Server")
 			s.SetIco(IconI)
-			m := s.AddMenu().SetName("版本: " + Version).SetIco(IconVersion)
+			m := s.AddMenu().SetName("版本: " + Version).SetIcon(IconVersion)
 			for _, v := range VersionHistory {
 				m.AddMenu().SetName(v["version"].(string) + "  " + v["desc"].(string)).Disable()
 			}
 
-			s.AddMenu().SetName("服务配置").SetIco(IconSetting).OnClick(func(m *tray.Menu) {
+			s.AddMenu().SetName("服务配置").SetIcon(IconSetting).OnClick(func(m *tray.Menu) {
 				config.GUI(config.New(Filename, config.Natures{
-					{Name: "TCP端口", Key: "tcp_port"},
-					{Name: "HTTP端口", Key: "http_port"},
-					{Name: "自定义菜单", Key: "custom_menu", Type: "object"},
-				}).OnSaved(func(m *conv.Map) {
-					rerun.Rerun()
+					{Name: "TCP", Key: "tcp", Type: "object2", Value: config.Natures{
+						{Name: "启用", Key: "enable", Type: "bool"},
+						{Name: "端口", Key: "port"},
+					}},
+					{Name: "HTTP", Key: "http", Type: "object2", Value: config.Natures{
+						{Name: "启用", Key: "enable", Type: "bool"},
+						{Name: "端口", Key: "port"},
+					}},
+					{Name: "菜单", Key: "menu", Type: "object"},
+				}).SetWidthHeight(800, 600).OnSaved(func(m *conv.Map) {
+					tcp.Enable(m.GetBool("tcp.enable"))
+					http.Enable(m.GetBool("http.enable"))
 				}))
 			})
-			s.AddMenu().SetName("全局配置").SetIco(IconSetting).OnClick(func(m *tray.Menu) {
+			s.AddMenu().SetName("全局配置").SetIcon(IconSetting).OnClick(func(m *tray.Menu) {
 				shell.Start("in global gui")
 			})
-			s.AddMenu().SetName("定时任务").SetIco(IconTimer).OnClick(func(m *tray.Menu) {
+			s.AddMenu().SetName("定时任务").SetIcon(IconTimer).OnClick(func(m *tray.Menu) {
 				shell.Start("in open timer")
 			})
-			s.AddMenu().SetName("消息通知").SetIco(IconNotice).OnClick(func(m *tray.Menu) {
+			s.AddMenu().SetName("消息通知").SetIcon(IconNotice).OnClick(func(m *tray.Menu) {
 				shell.Start("in open notice_client")
 			})
 
 			//加载自定义菜单
-			for k, v := range cfg.GetMap("custom_menu") {
+			s.AddSeparator()
+			for k, v := range cfg.GetMap("menu") {
 				cmd := conv.String(v)
 				s.AddMenu().SetName(k).OnClick(func(m *tray.Menu) {
 					shell.Run(cmd)
@@ -78,9 +88,24 @@ func main() {
 			}
 
 			s.AddSeparator()
-			tray.WithStartup()(s)
+			tray.WithStartup(tray.Name("开机自启"))(s)
+			mHTTP := s.AddMenuCheck().SetChecked(cfg.GetBool("http.enable"))
+			mHTTP.SetName("HTTP: " + conv.String(cfg.GetInt("http.port"))).OnClick(func(m *tray.Menu) {
+				x := cfg.WithFile(Filename).(*conv.Map).Set("http.enable", !m.Checked())
+				oss.New(Filename, x.String())
+				http.Enable(!m.Checked())
+				mHTTP.SetChecked(!m.Checked())
+			})
+			mTCP := s.AddMenuCheck().SetChecked(cfg.GetBool("tcp.enable"))
+			mTCP.SetName("TCP  : " + conv.String(cfg.GetInt("tcp.port"))).OnClick(func(m *tray.Menu) {
+				x := cfg.WithFile(Filename).(*conv.Map).Set("tcp.enable", !m.Checked())
+				oss.New(Filename, x.String())
+				tcp.Enable(!m.Checked())
+				mTCP.SetChecked(!m.Checked())
+			})
+
 			s.AddSeparator()
-			s.AddMenu().SetName("退出").SetIco(IconExit).OnClick(func(m *tray.Menu) {
+			s.AddMenu().SetName("退出").SetIcon(IconExit).OnClick(func(m *tray.Menu) {
 				s.Close()
 			})
 		},

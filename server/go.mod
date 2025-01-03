@@ -4,9 +4,9 @@ go 1.20
 
 require (
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4
-	github.com/injoyai/base v1.0.19
+	github.com/injoyai/base v1.0.20
 	github.com/injoyai/conv v1.1.13
-	github.com/injoyai/goutil v0.0.0-20250102031433-a96790687117
+	github.com/injoyai/goutil v0.0.0-20250102071326-e128c38723c1
 	github.com/injoyai/ios v0.0.5
 	github.com/injoyai/logs v1.0.9
 	github.com/injoyai/tool/config v0.0.0-20241231084158-b8c361c49940
