@@ -23,8 +23,9 @@ type Config struct {
 	Height   int               //高度,可选
 	Filename string            //本地文件路径,必须
 	Natures  []*Nature         //格式,必须
+	OnSaved  func(m *conv.Map) //保存事件,可选
 	m        *conv.Map         //缓存数据
-	onSaved  func(m *conv.Map) //保存事件,可选
+
 }
 
 func (this *Config) SetWidthHeight(width, height int) *Config {
@@ -33,8 +34,8 @@ func (this *Config) SetWidthHeight(width, height int) *Config {
 	return this
 }
 
-func (this *Config) OnSaved(onSaved func(m *conv.Map)) *Config {
-	this.onSaved = onSaved
+func (this *Config) SetOnSaved(onSaved func(m *conv.Map)) *Config {
+	this.OnSaved = onSaved
 	return this
 }
 

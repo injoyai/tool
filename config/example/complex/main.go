@@ -10,7 +10,7 @@ import (
 func main() {
 	config.GUI(config.New("./example/complex/config.yaml", Natures).
 		SetWidthHeight(720, 680).
-		OnSaved(func(m *conv.Map) {
+		SetOnSaved(func(m *conv.Map) {
 			log.Println("保存成功")
 			fmt.Println(m.String())
 		}))
