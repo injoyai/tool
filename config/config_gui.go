@@ -41,8 +41,8 @@ func GUI(cfg *Config) error {
 				app.Eval(fmt.Sprintf(`notice("%v");`, err))
 			} else {
 				app.Eval(`notice("保存成功");`)
-				if cfg.onSaved != nil {
-					cfg.onSaved(cfg.m)
+				if cfg.OnSaved != nil {
+					cfg.OnSaved(cfg.m)
 				}
 			}
 
