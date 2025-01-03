@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/injoyai/base v1.0.20
 	github.com/injoyai/conv v1.1.11
-	github.com/injoyai/goutil v0.0.0-20241224035909-0d3a5c3be3a1
+	github.com/injoyai/goutil v0.0.0-20250102071326-e128c38723c1
 	github.com/injoyai/logs v1.0.9
 	github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82
 	github.com/injoyai/proxy v1.0.16
@@ -39,6 +39,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.22.3 // indirect
