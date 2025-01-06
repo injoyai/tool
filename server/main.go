@@ -77,6 +77,9 @@ func main() {
 			s.AddMenu().SetName("消息通知").SetIcon(IconNotice).OnClick(func(m *tray.Menu) {
 				shell.Start("in open notice_client")
 			})
+			s.AddMenu().SetName("文件服务").OnClick(func(m *tray.Menu) {
+				shell.Start("in open hfs")
+			})
 
 			//加载自定义菜单
 			s.AddSeparator()
