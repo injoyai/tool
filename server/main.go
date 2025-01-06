@@ -22,6 +22,7 @@ var (
 	Filename       = oss.UserInjoyDir("/server/config.yaml")
 	Version        = VersionHistory[0]["version"].(string)
 	VersionHistory = []g.Map{
+		{"version": "v2.1", "desc": "默认菜单可关闭"},
 		{"version": "v2.0", "desc": "独立一个项目,方便修改"},
 	}
 )
@@ -62,24 +63,27 @@ func main() {
 						{Name: "启用", Key: "enable", Type: "bool"},
 						{Name: "端口", Key: "port"},
 					}},
-					{Name: "菜单", Key: "menu", Type: "object"},
+					{Name: "默认菜单", Key: "default_menu", Type: "bool"},
+					{Name: "自定义菜单", Key: "menu", Type: "object"},
 				}).SetWidthHeight(800, 600).OnSaved(func(m *conv.Map) {
 					tcp.Enable(m.GetBool("tcp.enable"))
 					http.Enable(m.GetBool("http.enable"))
 				}))
 			})
-			s.AddMenu().SetName("全局配置").SetIcon(IconSetting).OnClick(func(m *tray.Menu) {
-				shell.Start("in global gui")
-			})
-			s.AddMenu().SetName("定时任务").SetIcon(IconTimer).OnClick(func(m *tray.Menu) {
-				shell.Start("in open timer")
-			})
-			s.AddMenu().SetName("消息通知").SetIcon(IconNotice).OnClick(func(m *tray.Menu) {
-				shell.Start("in open notice_client")
-			})
-			s.AddMenu().SetName("文件服务").OnClick(func(m *tray.Menu) {
-				shell.Start("in open hfs")
-			})
+			if cfg.GetBool("default_menu") {
+				s.AddMenu().SetName("全局配置").SetIcon(IconSetting).OnClick(func(m *tray.Menu) {
+					shell.Start("in global gui")
+				})
+				s.AddMenu().SetName("定时任务").SetIcon(IconTimer).OnClick(func(m *tray.Menu) {
+					shell.Start("in open timer")
+				})
+				s.AddMenu().SetName("消息通知").SetIcon(IconNotice).OnClick(func(m *tray.Menu) {
+					shell.Start("in open notice_client")
+				})
+				s.AddMenu().SetName("文件服务").OnClick(func(m *tray.Menu) {
+					shell.Start("in open hfs")
+				})
+			}
 
 			//加载自定义菜单
 			s.AddSeparator()
