@@ -63,14 +63,15 @@ func main() {
 						{Name: "启用", Key: "enable", Type: "bool"},
 						{Name: "端口", Key: "port"},
 					}},
-					{Name: "默认菜单", Key: "default_menu", Type: "bool"},
+					{Name: "默认菜单", Key: "menu_default"},
 					{Name: "自定义菜单", Key: "menu", Type: "object"},
 				}).SetWidthHeight(800, 600).OnSaved(func(m *conv.Map) {
+					logs.Debug(m.String())
 					tcp.Enable(m.GetBool("tcp.enable"))
 					http.Enable(m.GetBool("http.enable"))
 				}))
 			})
-			if cfg.GetBool("default_menu") {
+			if cfg.GetBool("menu_default", true) {
 				s.AddMenu().SetName("全局配置").SetIcon(IconSetting).OnClick(func(m *tray.Menu) {
 					shell.Start("in global gui")
 				})
