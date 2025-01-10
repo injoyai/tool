@@ -22,6 +22,7 @@ var (
 	Filename       = oss.UserInjoyDir("/server/config.yaml")
 	Version        = VersionHistory[0]["version"].(string)
 	VersionHistory = []g.Map{
+		{"version": "v2.2", "desc": "增加文件服务,重新启动,版本升级菜单"},
 		{"version": "v2.1", "desc": "默认菜单可关闭"},
 		{"version": "v2.0", "desc": "独立一个项目,方便修改"},
 	}
@@ -65,10 +66,11 @@ func main() {
 					}},
 					{Name: "默认菜单", Key: "menu_default"},
 					{Name: "自定义菜单", Key: "menu", Type: "object"},
-				}).SetWidthHeight(800, 600).OnSaved(func(m *conv.Map) {
+				}).SetWidthHeight(800, 800).OnSaved(func(m *conv.Map) {
 					logs.Debug(m.String())
 					tcp.Enable(m.GetBool("tcp.enable"))
 					http.Enable(m.GetBool("http.enable"))
+					shell.Start("in open server")
 				}))
 			})
 			if cfg.GetBool("menu_default", true) {
@@ -83,6 +85,12 @@ func main() {
 				})
 				s.AddMenu().SetName("文件服务").OnClick(func(m *tray.Menu) {
 					shell.Start("in open hfs")
+				})
+				s.AddMenu().SetName("重新启动").OnClick(func(m *tray.Menu) {
+					shell.Start("in open server")
+				})
+				s.AddMenu().SetName("版本升级").OnClick(func(m *tray.Menu) {
+					shell.Start("in open server upgrade")
 				})
 			}
 
