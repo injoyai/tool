@@ -7,6 +7,8 @@ import (
 	"github.com/injoyai/lorca"
 )
 
+type APP = lorca.APP
+
 //go:embed index.html
 var html string
 
@@ -42,7 +44,7 @@ func GUI(cfg *Config) error {
 			} else {
 				app.Eval(`notice("保存成功");`)
 				if cfg.OnSaved != nil {
-					cfg.OnSaved(cfg.m)
+					cfg.OnSaved(app, cfg.m)
 				}
 			}
 

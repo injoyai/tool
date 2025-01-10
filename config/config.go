@@ -19,13 +19,12 @@ func New(filename string, natures Natures) *Config {
 }
 
 type Config struct {
-	Width    int               //宽度,可选
-	Height   int               //高度,可选
-	Filename string            //本地文件路径,必须
-	Natures  []*Nature         //格式,必须
-	OnSaved  func(m *conv.Map) //保存事件,可选
-	m        *conv.Map         //缓存数据
-
+	Width    int                        //宽度,可选
+	Height   int                        //高度,可选
+	Filename string                     //本地文件路径,必须
+	Natures  []*Nature                  //格式,必须
+	OnSaved  func(app APP, m *conv.Map) //保存事件,可选
+	m        *conv.Map                  //缓存数据
 }
 
 func (this *Config) SetWidthHeight(width, height int) *Config {
@@ -34,7 +33,7 @@ func (this *Config) SetWidthHeight(width, height int) *Config {
 	return this
 }
 
-func (this *Config) SetOnSaved(onSaved func(m *conv.Map)) *Config {
+func (this *Config) SetOnSaved(onSaved func(app APP, m *conv.Map)) *Config {
 	this.OnSaved = onSaved
 	return this
 }
