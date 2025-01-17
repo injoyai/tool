@@ -96,6 +96,12 @@
             transform: translateY(-100%);
         }
 
+        .notification.show { transform: translateX(0); }
+        .notification.success { background: #2ecc71; }
+        .notification.error { background: #e74c3c; }
+        .notification.warning { background: #f1c40f; }
+        .notification.info { background: #2ecc71; }
+
         @keyframes slideIn {
             from {
                 transform: translateY(-100%);
@@ -127,78 +133,95 @@
 
 <script>
 
+    // 监听系统刷新事件
+    document.addEventListener('DOMContentLoaded', loadConfig);
 
-    function loadConfig(configs) {
+    function loadConfig() {
+        if (typeof goGetConfig==="undefined"){
+            return
+        }
+
         // 根据配置信息对象数组动态生成配置列表
         var form = document.getElementById("configForm");
-        configs.forEach(function (config) {
-            var formRow = document.createElement("div");
-            formRow.className = "form-row";
+        form.innerText = "";
 
-            var labelContainer = document.createElement("div");
-            labelContainer.className = "label-container";
-            formRow.appendChild(labelContainer);
+        //调用go的函数
+        goGetConfig().then(configs => {
+            configs.forEach(config => {
+                var formRow = document.createElement("div");
+                formRow.className = "form-row";
 
-            var label = document.createElement("label");
-            label.textContent = config.name + ":";
-            labelContainer.appendChild(label);
+                var labelContainer = document.createElement("div");
+                labelContainer.className = "label-container";
+                formRow.appendChild(labelContainer);
 
-            var inputContainer = document.createElement("div");
-            inputContainer.className = "input-container";
-            formRow.appendChild(inputContainer);
+                var label = document.createElement("label");
+                label.textContent = config.name + ":";
+                labelContainer.appendChild(label);
 
-            var input;
-            if (config.type === "bool") {
-                var checkboxLabel = document.createElement("label");
-                checkboxLabel.className = "checkbox-label";
-                inputContainer.appendChild(checkboxLabel);
+                var inputContainer = document.createElement("div");
+                inputContainer.className = "input-container";
+                formRow.appendChild(inputContainer);
 
-                var checkboxInput = document.createElement("input");
-                checkboxInput.type = "checkbox";
-                checkboxInput.className = "checkbox-label";
-                checkboxInput.name = config.key;
-                checkboxInput.checked = config.value;
-                checkboxLabel.appendChild(checkboxInput);
-                checkboxLabel.appendChild(document.createTextNode("是"));
-            } else if (config.type === "object") {
-                // 如果参数类型是对象，则生成一个子级配置表单
-                var subConfigForm = document.createElement("form");
-                subConfigForm.className = "sub-config-form";
-                // 设置 data-key 属性为参数的键
-                subConfigForm.setAttribute("data-key", config.key);
-                config.value.forEach(function (subConfig) {
-                    addObjectNature(subConfigForm, subConfig.key, subConfig.value, )
-                });
+                var input;
+                switch (config.type) {
+                    case "map":
+                        // 如果参数类型是对象，则生成一个子级配置表单
+                        var subConfigForm = document.createElement("form");
+                        subConfigForm.className = "sub-config-form";
+                        // 设置 data-key 属性为参数的键
+                        subConfigForm.setAttribute("data-key", config.key);
+                        config.value.forEach(function (subConfig) {
+                            addObjectNature(subConfigForm, subConfig.key, subConfig.value,)
+                        });
 
-                var addButton = document.createElement("button");
-                addButton.className = "add-field-button";
-                addButton.textContent = "+";
-                addButton.onclick = function () {
-                    addObjectNature(subConfigForm, "", "", )
-                };
-                inputContainer.appendChild(addButton);
+                        var addButton = document.createElement("button");
+                        addButton.className = "add-field-button";
+                        addButton.textContent = "+";
+                        addButton.onclick = function () {
+                            addObjectNature(subConfigForm, "", "",)
+                        };
+                        inputContainer.appendChild(addButton);
 
-                inputContainer.appendChild(subConfigForm);
-            } else if (config.type === "object2") {
-                // 如果参数类型是对象，则生成一个子级配置表单
-                var subConfigForm = document.createElement("form");
-                subConfigForm.className = "sub-config-form";
-                // 设置 data-key 属性为参数的键
-                subConfigForm.setAttribute("data-key", config.key);
-                config.value.forEach(function (subConfig) {
-                    addObjectNature2(subConfigForm, subConfig)
-                });
-                inputContainer.appendChild(subConfigForm);
-            } else {
-                input = document.createElement("input");
-                input.type = "text";
-                input.name = config.key;
-                input.value = config.value;
-                inputContainer.appendChild(input);
-            }
+                        inputContainer.appendChild(subConfigForm);
+                        break;
+                    case "object":
+                        // 如果参数类型是对象，则生成一个子级配置表单
+                        var subConfigForm = document.createElement("form");
+                        subConfigForm.className = "sub-config-form";
+                        // 设置 data-key 属性为参数的键
+                        subConfigForm.setAttribute("data-key", config.key);
+                        config.value.forEach(function (subConfig) {
+                            addObjectNature2(subConfigForm, subConfig)
+                        });
+                        inputContainer.appendChild(subConfigForm);
+                        break;
+                    case "bool":
+                        var checkboxLabel = document.createElement("label");
+                        checkboxLabel.className = "checkbox-label";
+                        inputContainer.appendChild(checkboxLabel);
 
-            form.appendChild(formRow);
-        });
+                        var checkboxInput = document.createElement("input");
+                        checkboxInput.type = "checkbox";
+                        checkboxInput.className = "checkbox-label";
+                        checkboxInput.name = config.key;
+                        checkboxInput.checked = config.value;
+                        checkboxLabel.appendChild(checkboxInput);
+                        checkboxLabel.appendChild(document.createTextNode("是"));
+                        break;
+                    default://"string"
+                        input = document.createElement("input");
+                        input.type = "text";
+                        input.name = config.key;
+                        input.value = config.value;
+                        inputContainer.appendChild(input);
+                        break;
+                }
+
+
+                form.appendChild(formRow);
+            });
+        })
     }
 
     function addObjectNature(parent, key, value) {
@@ -237,7 +260,7 @@
 
     }
 
-    function addObjectNature2(parent,nature) {
+    function addObjectNature2(parent, nature) {
         var childContainer = document.createElement("div");
         childContainer.className = "form-row";
         parent.appendChild(childContainer);
@@ -257,7 +280,7 @@
         var childValueContainer = document.createElement("div");
         childValueContainer.className = "input-container";
         childContainer.appendChild(childValueContainer);
-        if (nature.type==="bool"){
+        if (nature.type === "bool") {
             var childValue = document.createElement("input");
             childValue.type = "checkbox";
             childValue.className = "checkbox-label";
@@ -265,7 +288,7 @@
             childValue.checked = nature.value;
             childValueContainer.appendChild(childValue);
             childValueContainer.appendChild(document.createTextNode("是"));
-        }else {
+        } else {
             var childValue = document.createElement("input");
             childValue.type = "text";
             childValue.name = "_child";
@@ -304,9 +327,9 @@
                 })
                 formRow.querySelectorAll(".input-container").forEach(function (labelContainer) {
                     labelContainer.querySelectorAll("input").forEach(function (input) {
-                        if (input.type==="checkbox") {
-                            value2=input.checked
-                        }else{
+                        if (input.type === "checkbox") {
+                            value2 = input.checked
+                        } else {
                             value2 = input.value
                         }
                     })
@@ -321,24 +344,26 @@
 
         //console.log(configObject);
         // 保存配置到文件或其他地方
-        saveToFile(configObject);
+        goSaveConfig(configObject).then(function(){
+            notice("保存成功")
+            loadConfig();
+        }).catch(err =>{
+            notice(err,'error')
+        })
     }
 
-    function notice(msg){
+    function notice(msg,type = 'info') {
         var notification = document.createElement('div');
-        notification.className = 'notification';
+        notification.className = `notification ${type}`;
         notification.innerText = msg;
         document.body.appendChild(notification);
 
         // 2秒后自动消失
-        setTimeout(function() {
+        setTimeout(function () {
             document.body.removeChild(notification);
         }, 2000);
     }
 
-    function saveToFile(config) {
-        // bind到go
-    }
 </script>
 </body>
 </html>
