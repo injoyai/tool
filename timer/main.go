@@ -3,23 +3,20 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"github.com/injoyai/goutil/oss/shell"
-	"net"
-	"strings"
-
 	"github.com/injoyai/conv"
 	"github.com/injoyai/goutil/database/sqlite"
-	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/net/ip"
 	"github.com/injoyai/goutil/notice"
 	"github.com/injoyai/goutil/oss"
+	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/oss/tray"
 	"github.com/injoyai/goutil/script"
 	"github.com/injoyai/goutil/script/js"
 	"github.com/injoyai/goutil/task"
 	"github.com/injoyai/logs"
 	"github.com/injoyai/lorca"
+	"net"
 	"xorm.io/xorm"
 )
 
@@ -54,7 +51,7 @@ func init() {
 		target := args.GetString(2)
 
 		switch target {
-		case "popup", "pop":
+		case "popup", "pop", "":
 			return nil, notice.DefaultWindows.Publish(&notice.Message{
 				Content: msg,
 				Target:  target,
@@ -62,33 +59,12 @@ func init() {
 
 		default:
 
-			switch {
-			case strings.HasPrefix(target, "wechat:friend:"):
-				err := http.Url(fmt.Sprintf("http://%s/api/notice", args.GetString(3))).
-					SetToken("147258369").
-					SetContentType("application/json").
-					SetBody(g.Map{
-						"output":  []string{target},
-						"content": msg,
-					}).Debug().Post().Err()
-				return nil, err
-
-			case strings.HasPrefix(target, "wechat:group:"):
-				err := http.Url(fmt.Sprintf("http://%s/api/notice", args.GetString(3))).
-					SetToken("147258369").
-					SetContentType("application/json").
-					SetBody(g.Map{
-						"output":  []string{target},
-						"content": msg,
-					}).Debug().Post().Err()
-				return nil, err
-
-			default:
-				return nil, notice.DefaultWindows.Publish(&notice.Message{
-					Content: msg,
-				})
-
-			}
+			x := http.Url(target).
+				SetContentType("application/json").
+				Debug().
+				SetBody(args.GetString(3))
+			err := x.Post().Err()
+			return nil, err
 
 		}
 
