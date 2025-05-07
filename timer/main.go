@@ -62,7 +62,7 @@ func init() {
 			x := http.Url(target).
 				SetContentType("application/json").
 				Debug().
-				SetBody(args.GetString(3))
+				SetBody(msg)
 			err := x.Post().Err()
 			return nil, err
 
