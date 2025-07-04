@@ -82,13 +82,44 @@
             background-color: #f9fafb;
         }
 
-        th:nth-child(1), td:nth-child(1) { width: 40px; min-width: 40px; }
-        th:nth-child(2), td:nth-child(2) { width: 80px; min-width: 80px; max-width: 80px; }
-        th:nth-child(3), td:nth-child(3) { width: 100px; min-width: 100px; max-width: 100px; }
-        th:nth-child(4), td:nth-child(4) { width: 200px; min-width: 200px; max-width: 200px; }
-        th:nth-child(5), td:nth-child(5) { width: 80px; min-width: 80px; text-align: center; }
-        th:nth-child(6), td:nth-child(6) { width: 120px; min-width: 120px; }
-        th:nth-child(7), td:nth-child(7) { width: 80px; min-width: 80px; }
+        th:nth-child(1), td:nth-child(1) {
+            width: 40px;
+            min-width: 40px;
+        }
+
+        th:nth-child(2), td:nth-child(2) {
+            width: 80px;
+            min-width: 80px;
+            max-width: 80px;
+        }
+
+        th:nth-child(3), td:nth-child(3) {
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
+        }
+
+        th:nth-child(4), td:nth-child(4) {
+            width: 200px;
+            min-width: 200px;
+            max-width: 200px;
+        }
+
+        th:nth-child(5), td:nth-child(5) {
+            width: 80px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        th:nth-child(6), td:nth-child(6) {
+            width: 120px;
+            min-width: 120px;
+        }
+
+        th:nth-child(7), td:nth-child(7) {
+            width: 80px;
+            min-width: 80px;
+        }
 
         .actions {
             display: flex;
@@ -127,10 +158,10 @@
             margin: 0 auto;
         }
 
-        .switch input { 
-            opacity: 0; 
-            width: 0; 
-            height: 0; 
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
         }
 
         .slider {
@@ -331,18 +362,34 @@
         }
 
         @keyframes modalSlideDown {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -451,26 +498,31 @@
         addModal.style.display = "none";
     });
 
+    document.addEventListener('DOMContentLoaded', refresh);
+
     document.getElementById('refreshAll').addEventListener('click', () => {
         refresh()
     });
 
-    function loadingTimer(id, name, cron, content, enable, next) {
+    function loadingTimer(data) {
+        console.log(data)
         const table = document.getElementById('timerTable');
-        const row = document.createElement('tr');
-        row.innerHTML = `
-                <td>${id}</td>
-                <td title="${name}">${name}</td>
-                <td title="${cron}">${cron}</td>
-                <td title="${content}">${content}</td>
-                <td><label class="switch"><input type="checkbox" ${enable ? 'checked' : ''} onchange="toggleStatus(this)"><span class="slider"></span></label></td>
-                <td>${next}</td>
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.id}</td>
+                <td title="${item.name}">${item.name}</td>
+                <td title="${item.cron}">${item.cron}</td>
+                <td title="${item.content}">${item.content}</td>
+                <td><label class="switch"><input type="checkbox" ${item.enable ? 'checked' : ''} onchange="toggleStatus(this)"><span class="slider"></span></label></td>
+                <td>${item.next}</td>
                 <td class="actions">
                     <button class="edit" onclick="openEditModal(this)">修改</button>
                     <button class="delete" onclick="deleteTimer(this)">删除</button>
                 </td>
             `;
-        table.appendChild(row);
+            table.appendChild(row);
+        })
     }
 
     function toggleStatus(checkbox) {
@@ -507,19 +559,83 @@
         delTimer(row.children[0].innerText);
     }
 
-    function addTimer(name, cron, content, enable) {
+    async function addTimer(name, cron, content, enable) {
+        const response = await fetch('/api/timer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'name': name,
+                'cron': cron,
+                'content': content,
+                'enable': enable
+            })
+        });
+        const data = await response.json();
+        check(data)
     }
 
-    function updateTimer(id, name, cron, content) {
+    async function updateTimer(id, name, cron, content, enable) {
+        const response = await fetch('/api/timer', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'name': name,
+                'cron': cron,
+                'content': content,
+                'enable': enable
+            })
+        });
+        const data = await response.json();
+        check(data)
     }
 
-    function enableTimer(id,enable) {
+    async function enableTimer(id, enable) {
+        const response = await fetch('/api/timer/enable', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'id': id,
+                'enable': enable
+            })
+        });
+        const data = await response.json();
+        check(data)
     }
 
-    function delTimer(id) {
+    async function delTimer(id) {
+        const response = await fetch('/api/timer', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'id': id
+            })
+        });
+        const data = await response.json();
+        check(data)
     }
 
-    function refresh() {
+    async function refresh() {
+        const response = await fetch('/api/timer/all').catch(error => {
+            notice(`获取失败: ${error.message}`, 'error');
+        });
+        const data = await response.json();
+        check(data)
+        clearTimer()
+        loadingTimer(data.data)
+    }
+
+    function check(data) {
+        if (data.code !== 200) {
+            throw new Error(data.msg);
+        }
     }
 
     function clearTimer() {
@@ -527,13 +643,13 @@
         table.innerText = '';
     }
 
-    function notice(msg){
+    function notice(msg) {
         var notification = document.createElement('div');
         notification.className = 'notification';
         notification.innerText = msg;
         document.body.appendChild(notification);
 
-        setTimeout(function() {
+        setTimeout(function () {
             document.body.removeChild(notification);
         }, 2000);
     }
