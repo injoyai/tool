@@ -3,6 +3,7 @@ package timer
 import (
 	_ "embed"
 	"fmt"
+	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv"
 	"github.com/injoyai/frame/fiber"
 	"github.com/injoyai/goutil/database/sqlite"
@@ -28,6 +29,7 @@ var (
 	DB     *xorms.Engine
 	Script = js.NewPool(10, script.WithObject, script.WithFunc)
 	Corn   = task.New().Start()
+	WS     = maps.NewGeneric[*fiber.Websocket, *fiber.Websocket]()
 )
 
 func _init(filename string) (err error) {
@@ -62,6 +64,13 @@ func _init(filename string) (err error) {
 				Content: msg,
 				Target:  target,
 			})
+
+		case "client":
+			WS.Range(func(key *fiber.Websocket, value *fiber.Websocket) bool {
+				value.Write([]byte(msg))
+				return true
+			})
+			return nil, nil
 
 		default:
 
@@ -144,6 +153,7 @@ func Run(port int, filename string) error {
 		g.PUT("/timer", PutTimer)           //修改
 		g.DELETE("/timer", DelTimer)        //删除
 		g.PUT("/timer/enable", EnableTimer) //启用/禁用
+		g.ALL("/notice/ws", NoticeWS)       //通知-websocket
 	})
 	return s.Run()
 }
@@ -223,4 +233,12 @@ func EnableTimer(c fiber.Ctx) {
 		return nil
 	})
 
+}
+
+func NoticeWS(c fiber.Ctx) {
+	c.Websocket(func(conn *fiber.Websocket) {
+		WS.Set(conn, conn)
+		defer WS.Del(conn)
+		<-conn.Done()
+	})
 }

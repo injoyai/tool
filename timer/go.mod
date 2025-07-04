@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/injoyai/conv v1.2.3
-	github.com/injoyai/frame v0.0.4
+	github.com/injoyai/frame v0.0.5
 	github.com/injoyai/goutil v1.2.6
 	github.com/injoyai/logs v1.0.10
 	github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82

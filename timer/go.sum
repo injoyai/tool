@@ -629,6 +629,7 @@ github.com/injoyai/conv v1.2.3 h1:0sTE9j2hkaMhWdEx+4GX8QMHCAaEIs0SXBOdE49rIFM=
 github.com/injoyai/conv v1.2.3/go.mod h1:s05l3fQJQ4mT4VX+KIdbvCWQB0YzZHprmUfUu2uxd1k=
 github.com/injoyai/frame v0.0.4 h1:1iO9L3EBTejcHMnqbA2Df5rJtGJdzsfsB3hI2npTqXs=
 github.com/injoyai/frame v0.0.4/go.mod h1:nguS4mkl6WahxlzUbBq3z8Vma2eTwELCuRkgt4vccBk=
+github.com/injoyai/frame v0.0.5/go.mod h1:nguS4mkl6WahxlzUbBq3z8Vma2eTwELCuRkgt4vccBk=
 github.com/injoyai/goutil v1.2.6 h1:DDOxnL+kiaOhkAJkHUWMMcFgN0kJAc3KbYUShg9SNLs=
 github.com/injoyai/goutil v1.2.6/go.mod h1:uyvggKrVBBl4VTjxtvtiCgQPoUF+E41RoHMS7Mh3wgk=
 github.com/injoyai/ios v0.0.7 h1:7k/brTmpnoqE6ajodyilkr2EJmJmcvSkpUD+LptgUVU=
