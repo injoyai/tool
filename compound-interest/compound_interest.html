@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复利计算器</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Microsoft YaHei',sans-serif}
+        body{background:#f5f7fa;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:10px}
+        .container{width:100%;max-width:600px;background-color:white;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.1);overflow:hidden}
+        .header{background:#667eea;color:white;padding:10px;text-align:center}
+        .header h1{font-size:18px;margin-bottom:5px}
+        .header p{font-size:12px;opacity:0.9}
+        .content{display:flex;flex-direction:column;padding:10px}
+        .input-section{padding:10px}
+        .result-section{padding:10px;background-color:#f8f9fa;border-radius:5px;margin-top:10px}
+        .form-group{margin-bottom:10px}
+        .form-group label{display:block;margin-bottom:3px;font-weight:bold;color:#333;font-size:14px}
+        .form-group input{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px}
+        .form-group input:focus{border-color:#667eea;outline:none}
+        .btn{background:#667eea;color:white;border:none;padding:8px;border-radius:4px;font-size:14px;cursor:pointer;width:100%}
+        .btn:hover{opacity:0.9}
+        .result-card{background-color:white;border-radius:5px;padding:8px;margin-bottom:10px;box-shadow:0 1px 5px rgba(0,0,0,0.05)}
+        .result-card h3{color:#667eea;margin-bottom:5px;font-size:14px}
+        .result-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #eee;font-size:12px}
+        .result-item:last-child{border-bottom:none}
+        .result-label{color:#555}
+        .result-value{font-weight:bold;color:#333}
+        .highlight{color:#764ba2;font-weight:bold}
+        .divider{height:1px;background-color:#ddd;margin:8px 0}
+        .chart-container{width:100%;height:200px;margin-top:10px}
+        @media(min-width:600px){.content{flex-direction:row}.input-section,.result-section{flex:1;padding:10px}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>复利计算器</h1>
+        <p>投资增长模拟工具</p>
+    </div>
+    <div class="content">
+        <div class="input-section">
+            <div class="form-group">
+                <label for="start">初始资金(元)</label>
+                <input type="number" id="start" value="20000" min="0" step="1000">
+            </div>
+            <div class="form-group">
+                <label for="memory">每月定投(元)</label>
+                <input type="number" id="memory" value="0" min="0" step="100">
+            </div>
+            <div class="form-group">
+                <label for="annualized">年化收益率(%)</label>
+                <input type="number" id="annualized" value="8" min="0" max="100" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="year">投资年限(年)</label>
+                <input type="number" id="year" value="30" min="1" max="100" step="1">
+            </div>
+            <div class="form-group">
+                <label for="inflation">通胀率(%)</label>
+                <input type="number" id="inflation" value="2.5" min="0" max="20" step="0.1">
+            </div>
+            <button class="btn" onclick="calculate()">计算</button>
+        </div>
+        <div class="result-section">
+            <div class="result-card">
+                <h3>假设条件</h3>
+                <div class="result-item">
+                    <span class="result-label">初始资金:</span>
+                    <span class="result-value" id="result-start">20,000.00元</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">每月定投:</span>
+                    <span class="result-value" id="result-memory">0.00元</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">年化收益:</span>
+                    <span class="result-value" id="result-annualized">8.00%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">投资年限:</span>
+                    <span class="result-value" id="result-year">30年</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">通胀率:</span>
+                    <span class="result-value" id="result-inflation">2.50%</span>
+                </div>
+            </div>
+            <div class="result-card">
+                <h3>计算结果</h3>
+                <div class="result-item">
+                    <span class="result-label">总投资:</span>
+                    <span class="result-value" id="result-total-investment">20,000.00元</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">总收益:</span>
+                    <span class="result-value highlight" id="result-total">219,566.45元</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">年收益:</span>
+                    <span class="result-value" id="result-annual">17,565.32元</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">收益倍数:</span>
+                    <span class="result-value" id="result-multiple">10.98</span>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="result-card">
+                <h3>考虑通胀后</h3>
+                <div class="result-item">
+                    <span class="result-label">实际购买力:</span>
+                    <span class="result-value highlight" id="result-buying-power">101,935.41元</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">实际倍数:</span>
+                    <span class="result-value" id="result-real-multiple">5.10</span>
+                </div>
+            </div>
+            <div class="chart-container" id="chart"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let chart=null;
+function formatNumber(num){return new Intl.NumberFormat('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(num)}
+function calculate(){
+  const start=parseFloat(document.getElementById('start').value)||0;
+  const memory=parseFloat(document.getElementById('memory').value)||0;
+  const annualized=parseFloat(document.getElementById('annualized').value)/100||0;
+  const year=parseInt(document.getElementById('year').value)||0;
+  const inflation=parseFloat(document.getElementById('inflation').value)/100||0;
+  let total=start;
+  let buy=1.0;
+  const labels=[0],totalData=[total],buyingPowerData=[total],investmentData=[start];
+  for(let i=0;i<year;i++){
+    total*=1+annualized;
+    buy*=1+inflation;
+    total+=memory*12;
+    labels.push(i+1);
+    totalData.push(total);
+    buyingPowerData.push(total/buy);
+    investmentData.push(start+memory*(i+1)*12);
+  }
+  const totalInvestment=start+memory*year*12;
+  document.getElementById('result-start').textContent=formatNumber(start)+'元';
+  document.getElementById('result-memory').textContent=formatNumber(memory)+'元';
+  document.getElementById('result-annualized').textContent=(annualized*100).toFixed(2)+'%';
+  document.getElementById('result-year').textContent=year+'年';
+  document.getElementById('result-inflation').textContent=(inflation*100).toFixed(2)+'%';
+  document.getElementById('result-total-investment').textContent=formatNumber(totalInvestment)+'元';
+  document.getElementById('result-total').textContent=formatNumber(total)+'元';
+  document.getElementById('result-annual').textContent=formatNumber(total*annualized)+'元';
+  document.getElementById('result-multiple').textContent=(total/totalInvestment).toFixed(2);
+  document.getElementById('result-buying-power').textContent=formatNumber(total/buy)+'元';
+  document.getElementById('result-real-multiple').textContent=((total/buy)/totalInvestment).toFixed(2);
+  updateChart(labels,totalData,buyingPowerData,investmentData);
+}
+function updateChart(labels,totalData,buyingPowerData,investmentData){
+  const ctx=document.getElementById('chart');
+  if(chart)chart.destroy();
+  chart=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[
+        {label:'总资产',data:totalData,borderColor:'#667eea',backgroundColor:'rgba(102,126,234,0.1)',borderWidth:1,fill:false},
+        {label:'实际购买力',data:buyingPowerData,borderColor:'#764ba2',backgroundColor:'rgba(118,75,162,0.1)',borderWidth:1,fill:false},
+        {label:'总投资',data:investmentData,borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,0.1)',borderWidth:1,fill:false}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top',labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{
+          mode:'index',
+          intersect:false,
+          callbacks:{label:function(context){return(context.dataset.label||'')+': '+formatNumber(context.parsed.y)+'元'}}
+        }
+      },
+      scales:{
+        x:{title:{display:true,text:'年份',font:{size:10}}},
+        y:{
+          title:{display:true,text:'金额(元)',font:{size:10}},
+          ticks:{font:{size:9},callback:function(value){return value>=1000000?(value/1000000).toFixed(1)+'M':value>=1000?(value/1000).toFixed(0)+'K':value}}
+        }
+      }
+    }
+  });
+}
+window.onload=calculate;
+</script>
+</body>
+</html>
