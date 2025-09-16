@@ -1,4 +1,4 @@
-name="in_server"
+name="i_server"
 GOOS=windows GOARCH=amd64 go build -v -ldflags="-H windowsgui -w -s" -o ./$name.exe
 echo "$name 编译完成..."
 echo "开始压缩..."
@@ -11,6 +11,6 @@ if [ -f "./$name.000" ]; then
 fi
 
 echo "上传至minio"
-cmd.exe /c "in upload minio ./$name.exe"
+cmd.exe /c "i upload minio ./$name.exe"
 
 sleep 2
