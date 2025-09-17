@@ -70,27 +70,27 @@ func main() {
 					logs.Debug(m.String())
 					tcp.Enable(m.GetBool("tcp.enable"))
 					http.Enable(m.GetBool("http.enable"))
-					shell.Start("in open server")
+					shell.Start("i open server")
 				}))
 			})
 			if cfg.GetBool("menu_default", true) {
 				s.AddMenu().SetName("全局配置").SetIcon(IconSetting).OnClick(func(m *tray.Menu) {
-					shell.Start("in global gui")
+					shell.Start("i global gui")
 				})
 				s.AddMenu().SetName("定时任务").SetIcon(IconTimer).OnClick(func(m *tray.Menu) {
-					shell.Start("in open timer")
+					shell.Start("i open timer")
 				})
 				s.AddMenu().SetName("消息通知").SetIcon(IconNotice).OnClick(func(m *tray.Menu) {
-					shell.Start("in open notice_client")
+					shell.Start("i open notice_client")
 				})
 				s.AddMenu().SetName("文件服务").OnClick(func(m *tray.Menu) {
-					shell.Start("in open hfs")
+					shell.Start("i open hfs")
 				})
 				s.AddMenu().SetName("重新启动").OnClick(func(m *tray.Menu) {
-					shell.Start("in open server")
+					shell.Start("i open server")
 				})
 				s.AddMenu().SetName("版本升级").OnClick(func(m *tray.Menu) {
-					shell.Start("in open server upgrade")
+					shell.Start("i open server upgrade")
 				})
 			}
 

@@ -16,7 +16,7 @@ func Do(Type string, data any) error {
 		m := conv.NewMap(data)
 
 		//显示通知和是否升级按钮按钮
-		upgradeEdge := fmt.Sprintf("http://localhost:%d", cfg.GetInt("http_port")) + "?cmd=in%20server%20edge%20upgrade"
+		upgradeEdge := fmt.Sprintf("http://localhost:%d", cfg.GetInt("http.port")) + "?cmd=i%20server%20edge%20upgrade"
 		notification := toast.Notification{
 			AppID:   "Microsoft.Windows.Shell.RunDialog",
 			Title:   fmt.Sprintf("发现新版本(%s),是否马上升级?", m.GetString("version")),
@@ -34,13 +34,13 @@ func Do(Type string, data any) error {
 		notice.DefaultVoice.Speak(fmt.Sprintf("主人. 发现网关新版本(%s). 是否马上升级?", m.GetString("version")))
 
 	case "edge.upgrade":
-		return shell.Start("in server edge upgrade")
+		return shell.Start("i server edge upgrade")
 
 	case "edge.open", "edge.run", "edge.start":
-		return shell.Start("in server edge")
+		return shell.Start("i server edge")
 
 	case "edge.close", "edge.stop", "edge.shutdown":
-		return shell.Start("in server edge stop")
+		return shell.Start("i server edge stop")
 	}
 	return errors.New("未知命令: " + Type)
 }
