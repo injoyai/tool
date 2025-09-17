@@ -22,6 +22,7 @@ var (
 	Filename       = oss.UserInjoyDir("/server/config.yaml")
 	Version        = VersionHistory[0]["version"].(string)
 	VersionHistory = []g.Map{
+		{"version": "v2.3", "desc": "配合in工具修改名字为i"},
 		{"version": "v2.2", "desc": "增加文件服务,重新启动,版本升级菜单"},
 		{"version": "v2.1", "desc": "默认菜单可关闭"},
 		{"version": "v2.0", "desc": "独立一个项目,方便修改"},
