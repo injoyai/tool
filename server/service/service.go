@@ -9,6 +9,7 @@ import (
 	"github.com/injoyai/conv/cfg/v2"
 	"github.com/injoyai/goutil/frame/in/v3"
 	"github.com/injoyai/goutil/g"
+	"github.com/injoyai/goutil/notice"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/types"
 	"github.com/injoyai/ios"
@@ -32,12 +33,6 @@ type Server struct {
 	Succ     int
 }
 
-func (this *Server) Run(ctx context.Context) {
-	cfg.Init(cfg.WithFile(this.Filename))
-	go this.HTTP(ctx, cfg.GetInt("http.port"))
-	this.TCP(ctx, cfg.GetInt("tcp.port"))
-}
-
 func (this *Server) RunHTTP(ctx context.Context) {
 	cfg.Init(cfg.WithFile(this.Filename))
 	err := this.HTTP(ctx, cfg.GetInt("http.port"))
@@ -47,6 +42,12 @@ func (this *Server) RunHTTP(ctx context.Context) {
 func (this *Server) RunTCP(ctx context.Context) {
 	cfg.Init(cfg.WithFile(this.Filename))
 	err := this.TCP(ctx, cfg.GetInt("tcp.port"))
+	logs.Err(err)
+}
+
+func (this *Server) RunUDP(ctx context.Context) {
+	cfg.Init(cfg.WithFile(this.Filename))
+	err := this.UDP(ctx, cfg.GetInt("udp.port"))
 	logs.Err(err)
 }
 
@@ -104,7 +105,7 @@ func (this *Server) HTTP(ctx context.Context, port int) error {
 
 		}
 
-		err := this.deal(msg)
+		err := this.deal(r.RemoteAddr, msg)
 		in.CheckErr(err)
 
 		in.Succ(msg.Data)
@@ -126,7 +127,7 @@ func (this *Server) TCP(ctx context.Context, port int) error {
 					return
 				}
 
-				err := this.deal(m)
+				err := this.deal(c.GetKey(), m)
 				if err != nil {
 					logs.Err(err)
 					resp := m.Response(this.Fail, nil, err.Error())
@@ -143,7 +144,36 @@ func (this *Server) TCP(ctx context.Context, port int) error {
 	})
 }
 
-func (this *Server) deal(msg *types.Message) (err error) {
+func (this *Server) UDP(ctx context.Context, port int) error {
+	addr := net.UDPAddr{IP: net.IPv4zero, Port: port}
+	conn, err := net.ListenUDP("udp", &addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	logs.Infof("[:%d] 开启UDP服务成功...\n", port)
+
+	go func() {
+		<-ctx.Done()
+		conn.Close()
+	}()
+
+	buf := make([]byte, 1024)
+	for {
+		n, src, err := conn.ReadFromUDP(buf)
+		if err != nil {
+			return err
+		}
+		msg := &types.Message{}
+		json.Unmarshal(buf[:n], msg)
+		if err := this.deal(src.String(), msg); err != nil {
+			logs.Err(err)
+		}
+	}
+}
+
+func (this *Server) deal(from string, msg *types.Message) (err error) {
 
 	if msg == nil {
 		return nil
@@ -170,6 +200,20 @@ func (this *Server) deal(msg *types.Message) (err error) {
 
 	case "deploy", "file", "files":
 		err = file.Do(data)
+
+	case "notice.voice":
+		err = notice.DefaultVoice.Speak(conv.String(data))
+
+	case "notice.pop", "notice.popup":
+		err = notice.DefaultWindows.Publish(&notice.Message{
+			Target:  notice.TargetPop,
+			Content: conv.String(data),
+		})
+
+	case "notice", "notice.notice":
+		err = notice.DefaultWindows.Publish(&notice.Message{
+			Content: conv.String(data),
+		})
 
 	/*
 

@@ -22,6 +22,7 @@ var (
 	Filename       = oss.UserInjoyDir("/server/config.yaml")
 	Version        = VersionHistory[0]["version"].(string)
 	VersionHistory = []g.Map{
+		{"version": "v2.4", "desc": "增加通知服务,修改tcp为udp"},
 		{"version": "v2.3", "desc": "配合in工具修改名字为i"},
 		{"version": "v2.2", "desc": "增加文件服务,重新启动,版本升级菜单"},
 		{"version": "v2.1", "desc": "默认菜单可关闭"},
@@ -41,9 +42,9 @@ func main() {
 		Succ:     Succ,
 	}
 
-	tcp := chans.NewRerun(ss.RunTCP)
+	udp := chans.NewRerun(ss.RunUDP)
 	http := chans.NewRerun(ss.RunHTTP)
-	tcp.Enable(cfg.GetBool("tcp.enable"))
+	udp.Enable(cfg.GetBool("tcp.enable"))
 	http.Enable(cfg.GetBool("http.enable"))
 
 	tray.Run(
@@ -57,7 +58,7 @@ func main() {
 
 			s.AddMenu().SetName("服务配置").SetIcon(IconSetting).OnClick(func(m *tray.Menu) {
 				config.GUI(config.New(Filename, config.Natures{
-					{Name: "TCP", Key: "tcp", Type: "object2", Value: config.Natures{
+					{Name: "UDP", Key: "udp", Type: "object2", Value: config.Natures{
 						{Name: "启用", Key: "enable", Type: "bool"},
 						{Name: "端口", Key: "port"},
 					}},
@@ -69,7 +70,7 @@ func main() {
 					{Name: "自定义菜单", Key: "menu", Type: "object"},
 				}).SetWidthHeight(800, 800).OnSaved(func(m *conv.Map) {
 					logs.Debug(m.String())
-					tcp.Enable(m.GetBool("tcp.enable"))
+					udp.Enable(m.GetBool("udp.enable"))
 					http.Enable(m.GetBool("http.enable"))
 					shell.Start("i open server")
 				}))
@@ -113,11 +114,11 @@ func main() {
 				http.Enable(!m.Checked())
 				mHTTP.SetChecked(!m.Checked())
 			})
-			mTCP := s.AddMenuCheck().SetChecked(cfg.GetBool("tcp.enable"))
-			mTCP.SetName("TCP  : " + conv.String(cfg.GetInt("tcp.port"))).OnClick(func(m *tray.Menu) {
-				x := cfg.WithFile(Filename).(*conv.Map).Set("tcp.enable", !m.Checked())
+			mTCP := s.AddMenuCheck().SetChecked(cfg.GetBool("udp.enable"))
+			mTCP.SetName("UDP  : " + conv.String(cfg.GetInt("udp.port"))).OnClick(func(m *tray.Menu) {
+				x := cfg.WithFile(Filename).(*conv.Map).Set("udp.enable", !m.Checked())
 				oss.New(Filename, x.String())
-				tcp.Enable(!m.Checked())
+				udp.Enable(!m.Checked())
 				mTCP.SetChecked(!m.Checked())
 			})
 
