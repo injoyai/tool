@@ -174,6 +174,7 @@ func (this *Server) UDP(ctx context.Context, port int) error {
 }
 
 func (this *Server) deal(from string, msg *types.Message) (err error) {
+	from = strings.Split(from, ":")[0]
 
 	if msg == nil {
 		return nil
