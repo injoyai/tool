@@ -207,11 +207,13 @@ func (this *Server) deal(from string, msg *types.Message) (err error) {
 	case "notice.pop", "notice.popup":
 		err = notice.DefaultWindows.Publish(&notice.Message{
 			Target:  notice.TargetPop,
+			Title:   from,
 			Content: conv.String(data),
 		})
 
 	case "notice", "notice.notice":
 		err = notice.DefaultWindows.Publish(&notice.Message{
+			Title:   "来着: " + from,
 			Content: conv.String(data),
 		})
 
