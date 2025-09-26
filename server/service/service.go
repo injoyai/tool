@@ -214,7 +214,7 @@ func (this *Server) deal(from string, msg *types.Message) (err error) {
 
 	case "notice", "notice.notice":
 		err = notice.DefaultWindows.Publish(&notice.Message{
-			Title:   "来着: " + from,
+			Title:   "来自: " + from,
 			Content: conv.String(data),
 		})
 
