@@ -66,7 +66,12 @@ func (this *Server) HTTP(ctx context.Context, port int) error {
 		msg := &types.Message{}
 
 		switch r.URL.Path {
-		case "", "/":
+		case "/":
+			msg = &types.Message{
+				Type: "ping",
+			}
+
+		case "/cmd":
 			msg = &types.Message{
 				Type: "shell",
 				Data: r.URL.Query().Get("cmd"),
@@ -191,6 +196,7 @@ func (this *Server) deal(from string, msg *types.Message) (err error) {
 
 	case "ping":
 		msg.Data = g.Map{
+			"name":    "i server",
 			"uptime":  g.Uptime.Unix(),
 			"version": this.Version,
 		}
