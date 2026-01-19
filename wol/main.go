@@ -12,9 +12,13 @@ var (
 	mac = cfg.GetString("mac")
 )
 
+func init() {
+	logs.SetFormatter(logs.TimeFormatter)
+}
+
 func main() {
 
-	fmt.Println("========================================================")
+	fmt.Println("=================================")
 	logs.Info(mac)
 
 	hw, err := net.ParseMAC(mac)
