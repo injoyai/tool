@@ -14,6 +14,9 @@ var (
 
 func main() {
 
+	fmt.Println("========================================================")
+	logs.Info(mac)
+
 	hw, err := net.ParseMAC(mac)
 	if err != nil {
 		logs.Err(err)
