@@ -33,7 +33,7 @@ fi
 
 # 上传到 MinIO
 echo "☁️ 上传 $name.exe 至 MinIO..."
-cmd.exe /c "in upload minio ./$name.exe" || {
+cmd.exe /c "i upload minio ./$name.exe" || {
     echo "❌ 上传失败"
     exit 1
 }

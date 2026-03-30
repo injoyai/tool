@@ -7,29 +7,34 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Microsoft YaHei',sans-serif}
         body{background:#f5f7fa;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:10px}
-        .container{width:100%;max-width:600px;background-color:white;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.1);overflow:hidden}
-        .header{background:#667eea;color:white;padding:10px;text-align:center}
-        .header h1{font-size:18px;margin-bottom:5px}
-        .header p{font-size:12px;opacity:0.9}
-        .content{display:flex;flex-direction:column;padding:10px}
-        .input-section{padding:10px}
-        .result-section{padding:10px;background-color:#f8f9fa;border-radius:5px;margin-top:10px}
-        .form-group{margin-bottom:10px}
-        .form-group label{display:block;margin-bottom:3px;font-weight:bold;color:#333;font-size:14px}
-        .form-group input{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px}
+        .container{width:100%;max-width:800px;background-color:white;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.1);overflow:hidden}
+        .header{background:#667eea;color:white;padding:6px;text-align:center}
+        .header h1{font-size:16px;margin-bottom:2px;line-height:1.2}
+        .header p{font-size:11px;opacity:0.9;line-height:1.2}
+        .content{display:flex;flex-direction:column;padding:8px}
+        .top{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .input-section{padding:8px;background-color:white;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,0.05)}
+        .result-section{padding:8px;background-color:white;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,0.05);margin-top:0}
+        .form-group{margin-bottom:8px}
+        .form-group label{display:block;margin-bottom:2px;font-weight:bold;color:#333;font-size:13px;line-height:1.2}
+        .form-group input{width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:13px}
         .form-group input:focus{border-color:#667eea;outline:none}
-        .btn{background:#667eea;color:white;border:none;padding:8px;border-radius:4px;font-size:14px;cursor:pointer;width:100%}
+        .btn{background:#667eea;color:white;border:none;padding:6px;border-radius:4px;font-size:13px;cursor:pointer;width:100%}
         .btn:hover{opacity:0.9}
-        .result-card{background-color:white;border-radius:5px;padding:8px;margin-bottom:10px;box-shadow:0 1px 5px rgba(0,0,0,0.05)}
-        .result-card h3{color:#667eea;margin-bottom:5px;font-size:14px}
-        .result-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #eee;font-size:12px}
+        .result-card{background-color:white;border-radius:5px;padding:8px;margin-bottom:8px;box-shadow:0 1px 5px rgba(0,0,0,0.05)}
+        .result-card h3{color:#667eea;margin-bottom:4px;font-size:13px}
+        .result-item{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #eee;font-size:11px}
         .result-item:last-child{border-bottom:none}
         .result-label{color:#555}
         .result-value{font-weight:bold;color:#333}
-        .highlight{color:#764ba2;font-weight:bold}
-        .divider{height:1px;background-color:#ddd;margin:8px 0}
-        .chart-container{width:100%;height:200px;margin-top:10px}
-        @media(min-width:600px){.content{flex-direction:row}.input-section,.result-section{flex:1;padding:10px}}
+        .highlight{color:#ce3030;font-weight:bold}
+        .divider{height:1px;background-color:#ddd;margin:6px 0}
+        .chart-container{width:100%;height:320px;margin-top:10px}
+        .chart-container canvas{width:100% !important;height:100% !important}
+        .chart-section{width:100%}
+        @media(max-width:600px){
+            .top{grid-template-columns:1fr}
+        }
     </style>
 </head>
 <body>
@@ -39,6 +44,7 @@
         <p>投资增长模拟工具</p>
     </div>
     <div class="content">
+        <div class="top">
         <div class="input-section">
             <div class="form-group">
                 <label for="start">初始资金(元)</label>
@@ -117,7 +123,13 @@
                     <span class="result-value" id="result-real-multiple">5.10</span>
                 </div>
             </div>
-            <div class="chart-container" id="chart"></div>
+        </div>
+        </div>
+        <div class="chart-section">
+            <div class="result-card">
+                <h3>资产曲线</h3>
+                <div class="chart-container"><canvas id="chart"></canvas></div>
+            </div>
         </div>
     </div>
 </div>
@@ -126,25 +138,39 @@
 <script>
 let chart=null;
 function formatNumber(num){return new Intl.NumberFormat('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(num)}
+function formatMoneyUnit(value){
+  if(value<10000)return Math.round(value)+'元';
+  if(value<100000000){const v=value/10000;return Math.round(v)+'万'}
+  if(value<1000000000000){const v=value/100000000;return Math.round(v)+'亿'}
+  const v=value/1000000000000;return Math.round(v)+'万亿'
+}
 function calculate(){
   const start=parseFloat(document.getElementById('start').value)||0;
   const memory=parseFloat(document.getElementById('memory').value)||0;
   const annualized=parseFloat(document.getElementById('annualized').value)/100||0;
   const year=parseInt(document.getElementById('year').value)||0;
   const inflation=parseFloat(document.getElementById('inflation').value)/100||0;
+  const months=year*12;
+  const monthlyRate=annualized/12;
+  const monthlyInflation=inflation/12;
   let total=start;
-  let buy=1.0;
+  let buy=1;
   const labels=[0],totalData=[total],buyingPowerData=[total],investmentData=[start];
-  for(let i=0;i<year;i++){
-    total*=1+annualized;
-    buy*=1+inflation;
-    total+=memory*12;
-    labels.push(i+1);
-    totalData.push(total);
-    buyingPowerData.push(total/buy);
-    investmentData.push(start+memory*(i+1)*12);
+  let lastYearTotal=start;
+  for(let m=1;m<=months;m++){
+    total=total*(1+monthlyRate)+memory;
+    buy*=1+monthlyInflation;
+    if(m%12===0){
+      const y=m/12;
+      labels.push(y);
+      totalData.push(total);
+      buyingPowerData.push(total/buy);
+      investmentData.push(start+memory*m);
+      if(y===year){lastYearTotal=totalData[totalData.length-2]||total}
+    }
   }
-  const totalInvestment=start+memory*year*12;
+  const totalInvestment=start+memory*months;
+  const annualEarning=year>0?total-lastYearTotal-memory*12:total-start;
   document.getElementById('result-start').textContent=formatNumber(start)+'元';
   document.getElementById('result-memory').textContent=formatNumber(memory)+'元';
   document.getElementById('result-annualized').textContent=(annualized*100).toFixed(2)+'%';
@@ -152,30 +178,42 @@ function calculate(){
   document.getElementById('result-inflation').textContent=(inflation*100).toFixed(2)+'%';
   document.getElementById('result-total-investment').textContent=formatNumber(totalInvestment)+'元';
   document.getElementById('result-total').textContent=formatNumber(total)+'元';
-  document.getElementById('result-annual').textContent=formatNumber(total*annualized)+'元';
+  document.getElementById('result-annual').textContent=formatNumber(annualEarning)+'元';
   document.getElementById('result-multiple').textContent=(total/totalInvestment).toFixed(2);
   document.getElementById('result-buying-power').textContent=formatNumber(total/buy)+'元';
   document.getElementById('result-real-multiple').textContent=((total/buy)/totalInvestment).toFixed(2);
   updateChart(labels,totalData,buyingPowerData,investmentData);
 }
 function updateChart(labels,totalData,buyingPowerData,investmentData){
-  const ctx=document.getElementById('chart');
+  const canvas=document.getElementById('chart');
+  const ctx=canvas.getContext('2d');
   if(chart)chart.destroy();
+  const gradientTotal=ctx.createLinearGradient(0,0,0,canvas.height);
+  gradientTotal.addColorStop(0,'rgba(102,126,234,0.25)');
+  gradientTotal.addColorStop(1,'rgba(102,126,234,0)');
+  const gradientBuying=ctx.createLinearGradient(0,0,0,canvas.height);
+  gradientBuying.addColorStop(0,'rgba(118,75,162,0.25)');
+  gradientBuying.addColorStop(1,'rgba(118,75,162,0)');
+  const gradientInvest=ctx.createLinearGradient(0,0,0,canvas.height);
+  gradientInvest.addColorStop(0,'rgba(56,178,172,0.25)');
+  gradientInvest.addColorStop(1,'rgba(56,178,172,0)');
   chart=new Chart(ctx,{
     type:'line',
     data:{
       labels:labels,
       datasets:[
-        {label:'总资产',data:totalData,borderColor:'#667eea',backgroundColor:'rgba(102,126,234,0.1)',borderWidth:1,fill:false},
-        {label:'实际购买力',data:buyingPowerData,borderColor:'#764ba2',backgroundColor:'rgba(118,75,162,0.1)',borderWidth:1,fill:false},
-        {label:'总投资',data:investmentData,borderColor:'#38b2ac',backgroundColor:'rgba(56,178,172,0.1)',borderWidth:1,fill:false}
+        {label:'总资产',data:totalData,borderColor:'#667eea',backgroundColor:gradientTotal,borderWidth:2,tension:0.3,pointRadius:0,fill:true},
+        {label:'实际购买力',data:buyingPowerData,borderColor:'#764ba2',backgroundColor:gradientBuying,borderWidth:2,tension:0.3,pointRadius:0,fill:true},
+        {label:'总投资',data:investmentData,borderColor:'#38b2ac',backgroundColor:gradientInvest,borderWidth:2,tension:0.3,pointRadius:0,fill:true}
       ]
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
+      animation:{easing:'easeOutQuart'},
+      layout:{padding:8},
       plugins:{
-        legend:{position:'top',labels:{boxWidth:10,font:{size:10}}},
+        legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},
         tooltip:{
           mode:'index',
           intersect:false,
@@ -183,16 +221,21 @@ function updateChart(labels,totalData,buyingPowerData,investmentData){
         }
       },
       scales:{
-        x:{title:{display:true,text:'年份',font:{size:10}}},
+        x:{title:{display:true,text:'年份',font:{size:10}},grid:{display:false},ticks:{font:{size:10}}},
         y:{
-          title:{display:true,text:'金额(元)',font:{size:10}},
-          ticks:{font:{size:9},callback:function(value){return value>=1000000?(value/1000000).toFixed(1)+'M':value>=1000?(value/1000).toFixed(0)+'K':value}}
+          title:{display:true,text:'金额',font:{size:10}},
+          ticks:{font:{size:9},callback:function(value){return formatMoneyUnit(value)}},
+          grid:{color:'rgba(0,0,0,0.05)',drawBorder:false},
+          beginAtZero:true
         }
       }
     }
   });
 }
-window.onload=calculate;
+window.onload=function(){
+  calculate();
+  document.querySelectorAll('#start,#memory,#annualized,#year,#inflation').forEach(function(el){el.addEventListener('input',calculate)});
+};
 </script>
 </body>
 </html>
