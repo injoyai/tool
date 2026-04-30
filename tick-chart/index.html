@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; }
+    #control-bar {
+      height: 40px;
+      background: #6b7280;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 20px;
+      border-bottom: 2px solid #4b5563;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      transform: translateY(-100%);
+      transition: transform 0.2s ease;
+    }
+    #control-bar::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 0;
+      right: 0;
+      height: 20px;
+      background: transparent;
+    }
+    #control-bar input, #control-bar label, #control-bar span {
+      -webkit-app-region: no-drag;
+    }
+    #chart-canvas, #status-bar {
+      -webkit-app-region: no-drag;
+    }
+    #control-bar:hover, #control-bar.visible {
+      transform: translateY(0);
+    }
+    #hover-zone {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      z-index: 99;
+    }
+    #control-bar label { color: #000; font-size: 14px; font-weight: bold; }
+    #code-input {
+      width: 100px; height: 26px;
+      background: #fff; border: 2px solid #000;
+      color: #000; font-size: 14px; padding: 0 6px;
+    }
+    #opacity-slider { width: 100px; }
+    #opacity-value { color: #000; font-weight: bold; min-width: 32px; }
+    #chart-container { width: 100%; height: 100%; background: #ffffff; position: relative; }
+    #chart-canvas { width: 100%; height: 100%; display: block; }
+    #status-bar { position: absolute; top: 8px; right: 12px; color: #333; font-size: 12px; text-align: right; }
+    .up { color: #e94560; }
+    .down { color: #00c853; }
+    .flat { color: #a8b2d1; }
+  </style>
+</head>
+<body>
+
+  <div id="hover-zone"></div>
+
+  <div id="control-bar">
+    <label>代码:</label>
+    <input type="text" id="code-input" placeholder="输入代码" maxlength="10">
+
+    <label><input type="checkbox" id="color-inverted"> 颜色反转</label>
+
+    <label>透明度:</label>
+    <input type="range" id="opacity-slider" min="0.1" max="1.0" step="0.1" value="1.0">
+    <span id="opacity-value">1.0</span>
+
+    <label><input type="checkbox" id="always-on-top"> 置顶</label>
+  </div>
+
+  <div id="chart-container">
+    <canvas id="chart-canvas"></canvas>
+    <div id="status-bar">
+      <div class="price flat" id="display-price">--</div>
+      <div class="change flat" id="display-change">--</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var hoverZone = document.getElementById('hover-zone');
+      var controlBar = document.getElementById('control-bar');
+      var hideTimer = null;
+
+      hoverZone.addEventListener('mouseenter', function () {
+        clearTimeout(hideTimer);
+        controlBar.classList.add('visible');
+      });
+
+      controlBar.addEventListener('mouseenter', function () {
+        clearTimeout(hideTimer);
+      });
+
+      controlBar.addEventListener('mouseleave', function () {
+        hideTimer = setTimeout(function () {
+          controlBar.classList.remove('visible');
+        }, 300);
+      });
+
+      document.addEventListener('mouseleave', function () {
+        controlBar.classList.remove('visible');
+      });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var initialOpacity = parseFloat(params.get('opacity')) || 1.0;
+      var initialAlwaysOnTop = params.get('alwaysOnTop') === 'true';
+      var initialCode = params.get('code') || '';
+      var initialColorInverted = params.get('colorInverted') === 'true';
+
+      var codeInput = document.getElementById('code-input');
+      var colorInvertedCheckbox = document.getElementById('color-inverted');
+      var opacitySlider = document.getElementById('opacity-slider');
+      var opacityValue = document.getElementById('opacity-value');
+      var alwaysOnTopCheckbox = document.getElementById('always-on-top');
+      var canvas = document.getElementById('chart-canvas');
+      var ctx = canvas.getContext('2d');
+      var displayPrice = document.getElementById('display-price');
+      var displayChange = document.getElementById('display-change');
+
+      codeInput.value = initialCode;
+      colorInvertedCheckbox.checked = initialColorInverted;
+      opacitySlider.value = initialOpacity;
+      opacityValue.textContent = initialOpacity.toFixed(1);
+      alwaysOnTopCheckbox.checked = initialAlwaysOnTop;
+
+      var ws = null;
+      var chartData = [];
+      var prevClose = 0;
+      var colorInverted = initialColorInverted;
+
+      function getUpColor() { return colorInverted ? '#00c853' : '#e94560'; }
+      function getDownColor() { return colorInverted ? '#e94560' : '#00c853'; }
+
+      function resizeCanvas() {
+        var container = document.getElementById('chart-container');
+        canvas.width = container.clientWidth * window.devicePixelRatio;
+        canvas.height = container.clientHeight * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        drawChart();
+      }
+
+      window.addEventListener('resize', resizeCanvas);
+
+      function drawChart() {
+        var w = canvas.width / window.devicePixelRatio;
+        var h = canvas.height / window.devicePixelRatio;
+        ctx.clearRect(0, 0, w, h);
+
+        if (chartData.length === 0) {
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('请输入股票代码并连接', w / 2, h / 2);
+          return;
+        }
+
+        var padding = { top: 10, right: 60, bottom: 30, left: 10 };
+        var priceH = h * 0.6;
+        var volH = h * 0.25;
+        var gap = h * 0.05;
+        var chartW = w - padding.left - padding.right;
+        var totalPoints = 240;
+
+        var prices = chartData.map(function(d) { return d.Price / 1000; });
+        var avgs = chartData.map(function(d) { return (d.AvgPrice !== undefined) ? d.AvgPrice / 1000 : null; });
+        var volumes = chartData.map(function(d) { return d.Number || 0; });
+
+        var minP = Math.min.apply(null, prices);
+        var maxP = Math.max.apply(null, prices);
+        if (prevClose > 0) {
+          minP = Math.min(minP, prevClose);
+          maxP = Math.max(maxP, prevClose);
+        }
+        var pRange = (maxP - minP) || 1;
+        var pPad = pRange * 0.1;
+        minP -= pPad;
+        maxP += pPad;
+
+        var maxVol = Math.max.apply(null, volumes.concat([1]));
+
+        function xPos(i) { return padding.left + (i / (totalPoints - 1)) * chartW; }
+        function yPos(p) { return padding.top + (1 - (p - minP) / (maxP - minP)) * priceH; }
+        function yPosVol(v) { return priceH + gap + (1 - v / maxVol) * volH; }
+
+        ctx.strokeStyle = '#2a2a4a';
+        ctx.lineWidth = 0.5;
+        for (var i = 0; i <= 4; i++) {
+          var y = padding.top + (priceH / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(padding.left, y);
+          ctx.lineTo(w - padding.right, y);
+          ctx.stroke();
+        }
+
+        if (prevClose > 0) {
+          var yClose = yPos(prevClose);
+          ctx.strokeStyle = '#4b5563';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(padding.left, yClose);
+          ctx.lineTo(w - padding.right, yClose);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(prevClose.toFixed(2), w - padding.right + 50, yClose + 3);
+        }
+
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'right';
+        for (var i = 0; i <= 4; i++) {
+          var p = maxP - ((maxP - minP) / 4) * i;
+          var y = padding.top + (priceH / 4) * i;
+          ctx.fillText(p.toFixed(2), w - padding.right + 50, y + 3);
+        }
+
+        ctx.textAlign = 'center';
+        var labelCount = Math.min(6, chartData.length);
+        for (var i = 0; i < labelCount; i++) {
+          var idx = Math.floor((i / (labelCount - 1)) * (chartData.length - 1));
+          ctx.fillText(chartData[idx].Time, xPos(idx), h - 5);
+        }
+
+        var validAvgs = avgs.filter(function(v) { return v !== null; });
+        if (validAvgs.length > 0) {
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 2]);
+          ctx.beginPath();
+          var started = false;
+          for (var i = 0; i < avgs.length; i++) {
+            if (avgs[i] === null) continue;
+            var x = xPos(i);
+            var y = yPos(avgs[i]);
+            if (!started) { ctx.moveTo(x, y); started = true; }
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (var i = 0; i < prices.length; i++) {
+          var x = xPos(i);
+          var y = yPos(prices[i]);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        var lastPrice = prices[prices.length - 1];
+        var baseY = yPos(prevClose > 0 ? prevClose : prices[0]);
+        ctx.beginPath();
+        for (var i = 0; i < prices.length; i++) {
+          var x = xPos(i);
+          var y = yPos(prices[i]);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.lineTo(xPos(prices.length - 1), baseY);
+        ctx.lineTo(xPos(0), baseY);
+        ctx.closePath();
+        var areaColor = lastPrice >= (prevClose > 0 ? prevClose : prices[0]) ? getUpColor() : getDownColor();
+        ctx.fillStyle = areaColor + '20';
+        ctx.fill();
+
+        var barW = Math.max(1, chartW / totalPoints * 0.6);
+        for (var i = 0; i < volumes.length; i++) {
+          var x = xPos(i);
+          var yTop = yPosVol(volumes[i]);
+          var yBot = priceH + gap + volH;
+          var isUp = (i === 0) ? true : prices[i] >= prices[i - 1];
+          ctx.fillStyle = isUp ? getUpColor() + '80' : getDownColor() + '80';
+          ctx.fillRect(x - barW / 2, yTop, barW, yBot - yTop);
+        }
+
+        var currentPrice = prices[prices.length - 1];
+        var change = prevClose > 0 ? currentPrice - prevClose : 0;
+        var changePct = prevClose > 0 ? (change / prevClose * 100) : 0;
+
+        displayPrice.textContent = currentPrice.toFixed(2);
+        displayPrice.className = 'price ' + (change >= 0 ? 'up' : 'down');
+
+        if (prevClose > 0) {
+          displayChange.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '  ' + (change >= 0 ? '+' : '') + changePct.toFixed(2) + '%';
+          displayChange.className = 'change ' + (change >= 0 ? 'up' : 'down');
+        } else {
+          displayChange.textContent = '--';
+          displayChange.className = 'change flat';
+        }
+      }
+
+      function connectWebSocket() {
+        var code = codeInput.value.trim();
+        if (!code) return;
+
+        if (ws) { ws.close(); ws = null; }
+        chartData = [];
+        prevClose = 0;
+
+        var wsUrl = 'ws://127.0.0.1:12380/ws?code=' + encodeURIComponent(code);
+        try {
+          ws = new WebSocket(wsUrl);
+
+          ws.onmessage = function (event) {
+            try {
+              var data = JSON.parse(event.data);
+              if (Array.isArray(data)) {
+                chartData = data.map(function(d) {
+                  return { Time: d.Time, Price: d.Price, AvgPrice: d.AvgPrice || d.Price, Number: d.Number || 0 };
+                });
+                if (chartData.length > 0 && chartData[0].PrevClose !== undefined) {
+                  prevClose = chartData[0].PrevClose / 1000;
+                }
+                drawChart();
+              } else if (data.PrevClose !== undefined) {
+                prevClose = data.PrevClose / 1000;
+              }
+            } catch (e) { console.error('Parse error:', e); }
+          };
+
+          ws.onclose = function () { ws = null; };
+          ws.onerror = function () { ws = null; };
+        } catch (e) { console.error('WebSocket error:', e); }
+      }
+
+      codeInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          var code = this.value.trim();
+          if (code) { window.electronAPI.setCode(code); connectWebSocket(); }
+        }
+      });
+
+      codeInput.addEventListener('blur', function () {
+        var code = this.value.trim();
+        if (code) { window.electronAPI.setCode(code); connectWebSocket(); }
+      });
+
+      colorInvertedCheckbox.addEventListener('change', function () {
+        colorInverted = this.checked;
+        window.electronAPI.setColorInverted(this.checked);
+        drawChart();
+      });
+
+      opacitySlider.addEventListener('input', function () {
+        var val = parseFloat(this.value).toFixed(1);
+        opacityValue.textContent = val;
+        window.electronAPI.setOpacity(val);
+      });
+
+      alwaysOnTopCheckbox.addEventListener('change', function () {
+        window.electronAPI.setAlwaysOnTop(this.checked);
+      });
+
+      resizeCanvas();
+
+      if (initialCode) {
+        setTimeout(connectWebSocket, 500);
+      }
+    })();
+  </script>
+
+</body>
+</html>
