@@ -5,8 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"strings"
+
 	"github.com/injoyai/conv"
-	"github.com/injoyai/conv/cfg/v2"
+	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/frame/in/v3"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/notice"
@@ -15,15 +20,11 @@ import (
 	"github.com/injoyai/ios"
 	"github.com/injoyai/ios/client"
 	"github.com/injoyai/ios/client/frame"
+	"github.com/injoyai/ios/module/tcp"
 	"github.com/injoyai/ios/server"
-	"github.com/injoyai/ios/server/listen"
 	"github.com/injoyai/logs"
 	"github.com/injoyai/tool/server/edge"
 	"github.com/injoyai/tool/server/file"
-	"io"
-	"net"
-	"net/http"
-	"strings"
 )
 
 type Server struct {
@@ -48,6 +49,12 @@ func (this *Server) RunTCP(ctx context.Context) {
 func (this *Server) RunUDP(ctx context.Context) {
 	cfg.Init(cfg.WithFile(this.Filename))
 	err := this.UDP(ctx, cfg.GetInt("udp.port"))
+	logs.Err(err)
+}
+
+func (this *Server) RunTDX(ctx context.Context) {
+	cfg.Init(cfg.WithFile(this.Filename))
+	err := this.TDX(ctx, cfg.GetInt("tdx.port"))
 	logs.Err(err)
 }
 
@@ -119,7 +126,7 @@ func (this *Server) HTTP(ctx context.Context, port int) error {
 }
 
 func (this *Server) TCP(ctx context.Context, port int) error {
-	return listen.RunTCPContext(ctx, port, func(s *server.Server) {
+	return server.RunContext(ctx, tcp.NewListen(port), func(s *server.Server) {
 		s.Logger.Debug(false)
 		s.SetClientOption(func(c *client.Client) {
 			c.Logger.Debug(false)

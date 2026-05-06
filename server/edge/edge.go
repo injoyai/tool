@@ -3,9 +3,10 @@ package edge
 import (
 	"errors"
 	"fmt"
+
 	"github.com/go-toast/toast"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/conv/cfg/v2"
+	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/notice"
 	"github.com/injoyai/goutil/oss/shell"
 )

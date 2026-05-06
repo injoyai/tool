@@ -3,13 +3,13 @@ package main
 import (
 	"github.com/injoyai/base/chans"
 	"github.com/injoyai/conv"
-	"github.com/injoyai/conv/cfg/v2"
+	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/g"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
 	"github.com/injoyai/goutil/oss/tray"
 	"github.com/injoyai/logs"
-	"github.com/injoyai/tool/config"
+	"github.com/injoyai/tool/server/config"
 	"github.com/injoyai/tool/server/service"
 )
 
@@ -22,6 +22,7 @@ var (
 	Filename       = oss.UserInjoyDir("/server/config.yaml")
 	Version        = VersionHistory[0]["version"].(string)
 	VersionHistory = []g.Map{
+		{"version": "v2.5", "desc": "增加tdx服务"},
 		{"version": "v2.4", "desc": "增加通知服务,修改tcp为udp"},
 		{"version": "v2.3", "desc": "配合in工具修改名字为i"},
 		{"version": "v2.2", "desc": "增加文件服务,重新启动,版本升级菜单"},
@@ -44,8 +45,10 @@ func main() {
 
 	udp := chans.NewRerun(ss.RunUDP)
 	http := chans.NewRerun(ss.RunHTTP)
+	tdx := chans.NewRerun(ss.RunTDX)
 	udp.Enable(cfg.GetBool("tcp.enable"))
 	http.Enable(cfg.GetBool("http.enable"))
+	tdx.Enable(cfg.GetBool("tdx.enable"))
 
 	tray.Run(
 		func(s *tray.Tray) {
@@ -63,6 +66,10 @@ func main() {
 						{Name: "端口", Key: "port"},
 					}},
 					{Name: "HTTP", Key: "http", Type: "object2", Value: config.Natures{
+						{Name: "启用", Key: "enable", Type: "bool"},
+						{Name: "端口", Key: "port"},
+					}},
+					{Name: "TDX", Key: "tdx", Type: "object2", Value: config.Natures{
 						{Name: "启用", Key: "enable", Type: "bool"},
 						{Name: "端口", Key: "port"},
 					}},
@@ -117,6 +124,13 @@ func main() {
 			mTCP := s.AddMenuCheck().SetChecked(cfg.GetBool("udp.enable"))
 			mTCP.SetName("UDP  : " + conv.String(cfg.GetInt("udp.port"))).OnClick(func(m *tray.Menu) {
 				x := cfg.WithFile(Filename).(*conv.Map).Set("udp.enable", !m.Checked())
+				oss.New(Filename, x.String())
+				udp.Enable(!m.Checked())
+				mTCP.SetChecked(!m.Checked())
+			})
+			mTDX := s.AddMenuCheck().SetChecked(cfg.GetBool("tdx.enable"))
+			mTDX.SetName("TDX  : " + conv.String(cfg.GetInt("tdx.port"))).OnClick(func(m *tray.Menu) {
+				x := cfg.WithFile(Filename).(*conv.Map).Set("tdx.enable", !m.Checked())
 				oss.New(Filename, x.String())
 				udp.Enable(!m.Checked())
 				mTCP.SetChecked(!m.Checked())
