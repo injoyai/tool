@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -6,6 +6,7 @@ app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-gpu');
 
 let mainWindow = null;
+let tray = null;
 
 const configPath = path.join(app.getPath('userData'), 'config.json');
 
@@ -29,6 +30,36 @@ function saveConfig(config) {
   }
 }
 
+function createIcon() {
+  const iconPath = path.join(__dirname, 'icon.png');
+  if (fs.existsSync(iconPath)) {
+    return nativeImage.createFromPath(iconPath);
+  }
+
+  const size = 32;
+  const canvas = Buffer.alloc(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const idx = (y * size + x) * 4;
+      const cx = size / 2;
+      const cy = size / 2;
+      const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+      if (dist < size / 2 - 2) {
+        canvas[idx] = 107;
+        canvas[idx + 1] = 114;
+        canvas[idx + 2] = 128;
+        canvas[idx + 3] = 255;
+      } else {
+        canvas[idx] = 0;
+        canvas[idx + 1] = 0;
+        canvas[idx + 2] = 0;
+        canvas[idx + 3] = 0;
+      }
+    }
+  }
+  return nativeImage.createFromBuffer(canvas, { width: size, height: size });
+}
+
 function createWindow() {
   const config = loadConfig();
 
@@ -39,8 +70,9 @@ function createWindow() {
     height: 200,
     title: '',
     resizable: true,
-    show: true,
+    show: false,
     frame: true,
+    skipTaskbar: true,
     icon: null,
     opacity: opacity,
     x: 100,
@@ -48,7 +80,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      backgroundThrottling: false
     }
   });
 
@@ -65,21 +98,37 @@ function createWindow() {
     }
   });
 
-  mainWindow.webContents.on('did-finish-load', () => {
-    console.log('Page loaded successfully');
-  });
-
-  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-    console.error('Failed to load:', errorCode, errorDescription);
-  });
-
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
+function createTray() {
+  const icon = createIcon();
+  tray = new Tray(icon);
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: '显示', click: () => { if (mainWindow) mainWindow.show(); } },
+    { label: '退出', click: () => { app.quit(); } }
+  ]);
+
+  tray.setToolTip('分时图');
+  tray.setContextMenu(contextMenu);
+
+  tray.on('click', () => {
+    if (mainWindow) {
+      if (mainWindow.isVisible()) {
+        mainWindow.hide();
+      } else {
+        mainWindow.show();
+      }
+    }
+  });
+}
+
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
+  createTray();
   createWindow();
 });
 
@@ -92,6 +141,13 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
+});
+
+app.on('before-quit', () => {
+  if (tray) {
+    tray.destroy();
+    tray = null;
   }
 });
 

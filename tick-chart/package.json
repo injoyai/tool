@@ -14,8 +14,8 @@
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "com.floating.browser",
-    "productName": "tick-chart",
+    "appId": "com.tick.chart",
+    "productName": "分时图",
     "directories": {
       "output": "dist"
     },

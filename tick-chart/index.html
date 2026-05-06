@@ -145,8 +145,33 @@
       var prevClose = 0;
       var colorInverted = initialColorInverted;
 
-      function getUpColor() { return colorInverted ? '#00c853' : '#e94560'; }
-      function getDownColor() { return colorInverted ? '#e94560' : '#00c853'; }
+      function getChartColors() {
+        if (colorInverted) {
+          return {
+            bg: '#1a1a2e',
+            grid: '#3a3a5a',
+            text: '#a0a0c0',
+            prevClose: '#6b7280',
+            priceLine: '#3b82f6',
+            avgLine: '#f59e0b',
+            areaUp: '#e94560',
+            areaDown: '#00c853'
+          };
+        }
+        return {
+          bg: '#ffffff',
+          grid: '#e5e7eb',
+          text: '#6b7280',
+          prevClose: '#9ca3af',
+          priceLine: '#3b82f6',
+          avgLine: '#f59e0b',
+          areaUp: '#e94560',
+          areaDown: '#00c853'
+        };
+      }
+
+      function getUpColor() { return '#e94560'; }
+      function getDownColor() { return '#00c853'; }
 
       function resizeCanvas() {
         var container = document.getElementById('chart-container');
@@ -161,10 +186,13 @@
       function drawChart() {
         var w = canvas.width / window.devicePixelRatio;
         var h = canvas.height / window.devicePixelRatio;
-        ctx.clearRect(0, 0, w, h);
+        var colors = getChartColors();
+
+        ctx.fillStyle = colors.bg;
+        ctx.fillRect(0, 0, w, h);
 
         if (chartData.length === 0) {
-          ctx.fillStyle = '#6b7280';
+          ctx.fillStyle = colors.text;
           ctx.font = '14px sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText('请输入股票代码并连接', w / 2, h / 2);
@@ -199,7 +227,7 @@
         function yPos(p) { return padding.top + (1 - (p - minP) / (maxP - minP)) * priceH; }
         function yPosVol(v) { return priceH + gap + (1 - v / maxVol) * volH; }
 
-        ctx.strokeStyle = '#2a2a4a';
+        ctx.strokeStyle = colors.grid;
         ctx.lineWidth = 0.5;
         for (var i = 0; i <= 4; i++) {
           var y = padding.top + (priceH / 4) * i;
@@ -211,7 +239,7 @@
 
         if (prevClose > 0) {
           var yClose = yPos(prevClose);
-          ctx.strokeStyle = '#4b5563';
+          ctx.strokeStyle = colors.prevClose;
           ctx.lineWidth = 1;
           ctx.setLineDash([4, 4]);
           ctx.beginPath();
@@ -219,13 +247,13 @@
           ctx.lineTo(w - padding.right, yClose);
           ctx.stroke();
           ctx.setLineDash([]);
-          ctx.fillStyle = '#6b7280';
+          ctx.fillStyle = colors.text;
           ctx.font = '10px sans-serif';
           ctx.textAlign = 'right';
           ctx.fillText(prevClose.toFixed(2), w - padding.right + 50, yClose + 3);
         }
 
-        ctx.fillStyle = '#6b7280';
+        ctx.fillStyle = colors.text;
         ctx.font = '10px sans-serif';
         ctx.textAlign = 'right';
         for (var i = 0; i <= 4; i++) {
@@ -282,7 +310,7 @@
         ctx.lineTo(xPos(prices.length - 1), baseY);
         ctx.lineTo(xPos(0), baseY);
         ctx.closePath();
-        var areaColor = lastPrice >= (prevClose > 0 ? prevClose : prices[0]) ? getUpColor() : getDownColor();
+        var areaColor = lastPrice >= (prevClose > 0 ? prevClose : prices[0]) ? colors.areaUp : colors.areaDown;
         ctx.fillStyle = areaColor + '20';
         ctx.fill();
 
@@ -292,7 +320,7 @@
           var yTop = yPosVol(volumes[i]);
           var yBot = priceH + gap + volH;
           var isUp = (i === 0) ? true : prices[i] >= prices[i - 1];
-          ctx.fillStyle = isUp ? getUpColor() + '80' : getDownColor() + '80';
+          ctx.fillStyle = isUp ? colors.areaUp + '80' : colors.areaDown + '80';
           ctx.fillRect(x - barW / 2, yTop, barW, yBot - yTop);
         }
 
@@ -320,7 +348,7 @@
         chartData = [];
         prevClose = 0;
 
-        var wsUrl = 'ws://127.0.0.1:12380/ws?code=' + encodeURIComponent(code);
+        var wsUrl = 'ws://127.0.0.1:10090/minute/ws?code=' + encodeURIComponent(code);
         try {
           ws = new WebSocket(wsUrl);
 
