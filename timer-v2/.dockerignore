@@ -1,0 +1,17 @@
+# 构建产物/二进制
+*.exe
+*.exe~
+server
+timer
+
+# 本地数据(数据库文件,容器内用 volume 单独挂载)
+data/
+
+# 文档与计划
+docs/
+
+# IDE/系统文件
+.git
+.idea
+.vscode
+*.md
