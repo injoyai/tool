@@ -1,6 +1,6 @@
 module github.com/injoyai/tool/timer
 
-go 1.20
+go 1.23
 
 require (
 	github.com/injoyai/conv v1.2.3

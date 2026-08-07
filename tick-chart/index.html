@@ -141,9 +141,11 @@
       alwaysOnTopCheckbox.checked = initialAlwaysOnTop;
 
       var ws = null;
+      var wsCode = '';
       var chartData = [];
       var prevClose = 0;
       var colorInverted = initialColorInverted;
+      var lastConnectTime = 0;
 
       function getChartColors() {
         if (colorInverted) {
@@ -343,10 +345,15 @@
       function connectWebSocket() {
         var code = codeInput.value.trim();
         if (!code) return;
+        var now = Date.now();
+        if (now - lastConnectTime < 500) return;
+        if (wsCode === code) return;
 
+        lastConnectTime = now;
         if (ws) { ws.close(); ws = null; }
         chartData = [];
         prevClose = 0;
+        wsCode = code;
 
         var wsUrl = 'ws://127.0.0.1:10090/minute/ws?code=' + encodeURIComponent(code);
         try {
