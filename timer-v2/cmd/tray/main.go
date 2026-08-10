@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"net"
+
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/tray"
 	"github.com/injoyai/lorca"
@@ -9,9 +11,14 @@ import (
 )
 
 func main() {
-	port := 60074
 	db := oss.UserInjoyDir("/timer/database/timer.db")
-	go timer.Run(port, db)
+	// 系统自动分配空闲端口,tray 直接持有 listener 获知实际端口
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		panic(err)
+	}
+	port := ln.Addr().(*net.TCPAddr).Port
+	go timer.RunWithListener(ln, db)
 	tray.Run(
 		tray.WithIco(IcoTimer),
 		tray.WithHint("定时任务"),

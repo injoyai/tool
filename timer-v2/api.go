@@ -2,7 +2,9 @@ package timer
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
+	"net"
 	"sync"
 	"time"
 
@@ -71,12 +73,22 @@ func _init(filename string) (err error) {
 }
 
 func Run(port int, filename string) error {
+	// 监听: 优先使用配置端口,被占用时回退到系统自动分配的空闲端口
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return err
+	}
+	return RunWithListener(ln, filename)
+}
+
+// RunWithListener 在指定 listener 上启动服务,调用方负责创建 listener(可获知实际端口)。
+func RunWithListener(ln net.Listener, filename string) error {
 	if err := _init(filename); err != nil {
+		ln.Close()
 		return err
 	}
 	initAuth()
 	s := fbr.Default()
-	s.SetPort(port)
 	s.GET("/", func(c fbr.Ctx) {
 		if sessionToken != "" && c.Cookies(sessionCookieName) != sessionToken {
 			c.RedirectTo("/login")
@@ -141,7 +153,7 @@ func Run(port int, filename string) error {
 
 		g.ALL("/notice/ws", NoticeWS) //通知-websocket
 	})
-	return s.Run()
+	return s.RunListener(ln)
 }
 
 func GetTimerAll(c fbr.Ctx) {
