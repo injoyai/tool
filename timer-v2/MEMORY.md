@@ -24,6 +24,7 @@ timer-v2/
 ├── Dockerfile          # 多阶段构建(golang:1.25-alpine -> alpine)
 ├── docker-push.sh      # 构建并推送镜像(可配多架构)
 ├── .dockerignore       # 排除 data/、*.exe、docs/
+├── .gitignore          # 忽略 config/config.yaml(含敏感密钥,不入库)
 ├── cmd/server/         # 入口 main.go
 ├── cmd/tray/           # 系统托盘入口
 ├── lib/                # yaegi extract 生成的 injoyai 包符号
@@ -66,6 +67,11 @@ go build ./cmd/server && server.exe    # 访问 http://localhost:8078/
 - 字典补全纯前端实现，无 gopls 依赖
 
 ## 核心约定
+
+### 配置文件 (config/config.yaml)
+- **已 gitignore，不入库**：含敏感信息(ServerChan key、夸克签到 token 等)，仅本地保留
+- 模板文件 `config/config.yaml.exmplate` 可入库供参考
+- password 配置见下方「登录认证」
 
 ### 脚本编写 (Go 语法)
 脚本必须是完整 Go 程序(`package main` + `func main`)，可用的包:
