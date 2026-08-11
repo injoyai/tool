@@ -674,6 +674,8 @@ github.com/injoyai/logs/v2 v2.0.0 h1:uKYfKh3SiBNrY/htHRrFWhN7Rd940Jp/9A9Cs4mJlwA
 github.com/injoyai/logs/v2 v2.0.0/go.mod h1:dtiJXEx44N1JsU0lpq3ZmrC0+J0+e/7pIERcjUxE2lk=
 github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82 h1:fuyn7C3rTWUciXtIFxsmZ6UzlEzldWPzwaqYgazTK+8=
 github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82/go.mod h1:Dtac1G/egJ2cUYt+G6EQ8PxYK8APzXZcvpvNNpTgoRY=
+github.com/injoyai/notice v0.0.3 h1:N6ZqF+wzBJYu1Wb9sQ070tH0czqOTSU93kyt2tYivYU=
+github.com/injoyai/notice v0.0.3/go.mod h1:zOBWnOWo6FPg6BHI/XYSVO7mzD3nna85NrZpbk1S98I=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=

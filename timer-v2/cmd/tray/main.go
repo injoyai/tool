@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/tray"
 	"github.com/injoyai/lorca"
 	"github.com/injoyai/tool/timer"
 )
+
+func init() {
+	cfg.WithFile(oss.UserInjoyDir("/timer/config/config.yaml"))
+}
 
 func main() {
 	db := oss.UserInjoyDir("/timer/database/timer.db")

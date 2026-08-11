@@ -47,7 +47,7 @@ var EditorSetup = (function () {
 
     // 包成员补全 (pkg. 后提示)
     var GO_HINTS = {
-        'i': ['Start', 'Ping', 'Notice', 'Dial', 'DialTCP', 'Print', 'Println'],
+        'i': ['Start', 'Ping', 'Notice', 'Dial', 'DialTCP', 'Print', 'Println', 'ServerChan', 'QuarkCheckin'],
         'fmt': ['Print', 'Println', 'Printf', 'Sprint', 'Sprintf', 'Sprintln', 'Errorf', 'Fprint', 'Fprintln', 'Fprintf', 'Scan', 'Scanln', 'Scanf', 'Sscan', 'Sscanln', 'Sscanf'],
         'time': ['Now', 'Second', 'Minute', 'Hour', 'Millisecond', 'Microsecond', 'Nanosecond', 'Sleep', 'Since', 'Until', 'Parse', 'ParseDuration', 'Duration', 'Time', 'Ticker', 'Timer', 'Date', 'Unix', 'UnixNano', 'Format', 'Local', 'UTC'],
         'os': ['Args', 'Stdin', 'Stdout', 'Stderr', 'Getenv', 'Setenv', 'Exit', 'Open', 'Create', 'ReadFile', 'WriteFile', 'MkdirAll', 'Remove', 'RemoveAll', 'Stat', 'IsExist', 'IsNotExist', 'Hostname', 'Getwd'],
@@ -125,11 +125,13 @@ var EditorSetup = (function () {
         'i': {
             'Start': 'Start(cmd string) error',
             'Ping': 'Ping(host string, timeout time.Duration) (string, error)',
-            'Notice': 'Notice(msg, target string) error',
+            'Notice': 'Notice(msg string) error',
             'Dial': 'Dial(network, address string, timeout time.Duration) (string, error)',
             'DialTCP': 'DialTCP(address string, timeout time.Duration) (string, error)',
             'Print': 'Print(args ...interface{})',
-            'Println': 'Println(args ...interface{})'
+            'Println': 'Println(args ...interface{})',
+            'ServerChan': 'ServerChan(title, msg string) error',
+            'QuarkCheckin': 'QuarkCheckin(vcode, sign, kps string) (string, error)'
         },
         'fmt': {
             'Print': 'Print(a ...any) (n int, err error)',

@@ -2,15 +2,20 @@ package timer
 
 import (
 	"bytes"
+	"fmt"
 	"net"
 	"reflect"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/injoyai/conv/cfg"
+	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/net/ip"
-	"github.com/injoyai/goutil/notice"
+	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
+	"github.com/injoyai/notice/pkg/push"
+	"github.com/injoyai/notice/pkg/push/serverchan"
 	"github.com/injoyai/tool/timer/lib"
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
@@ -118,11 +123,7 @@ func (s *scriptEngine) registerBuiltins() {
 	})
 
 	// Notice 发送通知。
-	s.SetFunc("Notice", func(msg string) error {
-		return notice.DefaultWindows.Publish(&notice.Message{
-			Content: msg,
-		})
-	})
+	s.SetFunc("Notice", Notice)
 
 	// Dial 探测网络端口连通性。
 	s.SetFunc("Dial", func(network, address string, timeout time.Duration) (string, error) {
@@ -144,4 +145,82 @@ func (s *scriptEngine) registerBuiltins() {
 		return "成功", nil
 	})
 
+	// ServerChan 发送消息到 Server 频道。
+	s.SetFunc("ServerChan", func(title, msg string) error {
+		key := cfg.GetString("notice.serverchan.key")
+		if key == "" {
+			return fmt.Errorf("notice.serverchan.key is empty")
+		}
+		return serverchan.New(key).Push(&push.Message{
+			Title:   title,
+			Content: msg,
+		})
+	})
+
+	// QuarkCheckin 夸克签到
+	s.SetFunc("QuarkCheckin", func(vcode, sign, kps string) (string, error) {
+
+		debug := false
+		queries := map[string]any{
+			"fr":    "android",
+			"pr":    "ucpro",
+			"vcode": vcode,
+			"sign":  sign,
+			"kps":   kps,
+		}
+
+		infoUrl := "https://drive-m.quark.cn/1/clouddrive/capacity/growth/info"
+		resp := http.Url(infoUrl).SetQuerys(queries).Debug(debug).Get()
+		if resp.Err() != nil {
+			return "", resp.Err()
+		}
+
+		info := new(quarkInfoResp)
+		err := resp.Bind(info)
+		if err != nil {
+			return "", err
+		}
+		if info.Status == 200 && info.Data.CapSign.SignDaily {
+			return info.String(), nil
+		}
+
+		signUrl := "https://drive-m.quark.cn/1/clouddrive/capacity/growth/sign"
+		resp = http.Url(signUrl).SetQuerys(queries).Debug(debug).Post()
+		if resp.Err() != nil {
+			return "", resp.Err()
+		}
+
+		resp = http.Url(infoUrl).SetQuerys(queries).Debug(debug).Get()
+		if resp.Err() != nil {
+			return "", resp.Err()
+		}
+
+		info = new(quarkInfoResp)
+		_ = resp.Bind(info)
+
+		return info.String(), nil
+	})
+
+}
+
+type quarkInfoResp struct {
+	Status int `json:"status"`
+	Data   struct {
+		CapSign struct {
+			SignDaily       bool  `json:"sign_daily"`        //是否签到
+			SignProgress    int   `json:"sign_progress"`     //签到进度
+			SignTarget      int   `json:"sign_target"`       //签到目标
+			SignDailyReward int64 `json:"sign_daily_reward"` //每日签到奖励
+		} `json:"cap_sign"`
+		CapGrowth struct {
+			CurTotalCap int64 `json:"cur_total_cap"` //签到累计奖励
+		} `json:"cap_growth"`
+	} `json:"data"`
+}
+
+func (this *quarkInfoResp) String() string {
+	return fmt.Sprintf("签到进度:%d/%d, 签到奖励:%s, 累计签到:%s",
+		this.Data.CapSign.SignProgress, this.Data.CapSign.SignTarget,
+		oss.SizeString(this.Data.CapSign.SignDailyReward),
+		oss.SizeString(this.Data.CapGrowth.CurTotalCap))
 }

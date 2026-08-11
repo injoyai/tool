@@ -3,6 +3,8 @@ module github.com/injoyai/tool/timer
 go 1.25.0
 
 require (
+	github.com/eclipse/paho.mqtt.golang v1.5.1
+	github.com/goburrow/serial v0.1.0
 	github.com/gofiber/fiber/v3 v3.0.0-beta.4
 	github.com/injoyai/bar v0.0.12
 	github.com/injoyai/base v1.2.23
@@ -10,8 +12,10 @@ require (
 	github.com/injoyai/frame v0.0.20
 	github.com/injoyai/goutil v1.2.33
 	github.com/injoyai/ios/v2 v2.0.15
+	github.com/injoyai/logs v1.0.12
 	github.com/injoyai/logs/v2 v2.0.0
 	github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82
+	github.com/injoyai/notice v0.0.3
 	github.com/traefik/yaegi v0.16.1
 	github.com/valyala/fasthttp v1.68.0
 	xorm.io/xorm v1.3.11
@@ -29,7 +33,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/eclipse/paho.mqtt.golang v1.5.1 // indirect
 	github.com/fasthttp/websocket v1.5.12 // indirect
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
@@ -50,7 +53,6 @@ require (
 	github.com/go-playground/validator/v10 v10.27.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4 // indirect
-	github.com/goburrow/serial v0.1.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/gofiber/schema v1.6.0 // indirect
@@ -65,7 +67,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
-	github.com/injoyai/logs v1.0.12 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.1 // indirect
