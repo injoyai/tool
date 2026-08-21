@@ -16,12 +16,14 @@ require (
 	github.com/injoyai/logs/v2 v2.0.0
 	github.com/injoyai/lorca v0.0.0-20241219020631-030018723d82
 	github.com/injoyai/notice v0.0.3
+	github.com/injoyai/tdx v0.0.87
 	github.com/traefik/yaegi v0.16.1
 	github.com/valyala/fasthttp v1.68.0
 	xorm.io/xorm v1.3.11
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/DrmagicE/gmqtt v0.5.0 // indirect
 	github.com/PuerkitoBio/goquery v1.8.1 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.63.107 // indirect
@@ -46,11 +48,12 @@ require (
 	github.com/getlantern/systray v1.2.2 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/gin-gonic/gin v1.11.0 // indirect
-	github.com/glebarez/go-sqlite v1.21.1 // indirect
+	github.com/glebarez/go-sqlite v1.22.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.27.0 // indirect
+	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
@@ -67,6 +70,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
+	github.com/injoyai/ios v1.2.6 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.1 // indirect
@@ -124,7 +128,7 @@ require (
 	modernc.org/libc v1.55.3 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
-	modernc.org/sqlite v1.21.1 // indirect
+	modernc.org/sqlite v1.28.0 // indirect
 	xorm.io/builder v0.3.13 // indirect
 	xorm.io/core v0.7.3 // indirect
 )

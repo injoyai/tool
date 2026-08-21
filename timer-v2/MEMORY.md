@@ -75,7 +75,7 @@ go build ./cmd/server && server.exe    # 访问 http://localhost:8078/
 
 ### 脚本编写 (Go 语法)
 脚本必须是完整 Go 程序(`package main` + `func main`)，可用的包:
-- **`i` 包** (内置函数): `i.Start`, `i.Ping`, `i.Notice`, `i.Dial`, `i.DialTCP`, `i.Print`, `i.Println`
+- **`i` 包** (内置函数): `i.Start`, `i.Ping`, `i.Notice`, `i.Dial`, `i.DialTCP`, `i.Print`, `i.Println`, `i.GetPrices`, `i.Set`, `i.Get`, `i.Del`
 - **标准库**: fmt, time, net, encoding/json, strings 等
 - **injoyai 库**: conv, base/crypt/*, base/maps/*, base/coding, logs 等 (需 `import "github.com/injoyai/..."`)
 - `fmt.Println` 输出会被 `interp.Options.Stdout` 捕获，返回给前端展示

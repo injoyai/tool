@@ -9,17 +9,31 @@ import (
 	"sync"
 	"time"
 
+	"github.com/injoyai/base/maps"
 	"github.com/injoyai/conv/cfg"
 	"github.com/injoyai/goutil/net/http"
 	"github.com/injoyai/goutil/net/ip"
 	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/shell"
+	"github.com/injoyai/logs/v2"
 	"github.com/injoyai/notice/pkg/push"
 	"github.com/injoyai/notice/pkg/push/serverchan"
+	"github.com/injoyai/tdx"
 	"github.com/injoyai/tool/timer/lib"
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 )
+
+var (
+	_tdx *tdx.Client
+	_map = maps.NewSafe()
+)
+
+func init() {
+	var err error
+	_tdx, err = tdx.DialDefault()
+	logs.PrintErr(err)
+}
 
 // scriptEngine 基于 yaegi 的 Go 脚本引擎,替代旧的 otto(js) 池。
 //
@@ -108,6 +122,11 @@ func (s *scriptEngine) Exec(code string) (interface{}, error) {
 
 // registerBuiltins 注册定时任务常用的内置函数。
 func (s *scriptEngine) registerBuiltins() {
+
+	s.SetFunc("Set", _map.Set)
+	s.SetFunc("Get", _map.Get)
+	s.SetFunc("Del", _map.Del)
+
 	// Start 启动一个外部程序(或打开文件/网址)。
 	s.SetFunc("Start", func(cmd string) error {
 		return shell.Start2(cmd)
@@ -199,6 +218,23 @@ func (s *scriptEngine) registerBuiltins() {
 		_ = resp.Bind(info)
 
 		return info.String(), nil
+	})
+
+	s.SetFunc("GetPrices", func(code ...string) (map[string]float64, error) {
+		resp, err := _tdx.GetQuote(code...)
+		if err != nil {
+			return nil, err
+		}
+		if len(resp) == 0 {
+			return nil, fmt.Errorf("未找到%s", code)
+		}
+		m := map[string]float64{}
+		for _, v := range resp {
+			m[v.Exchange.String()+v.Code] = v.Kline.Close.Float64()
+		}
+		now := time.Now()
+		now.Weekday()
+		return m, nil
 	})
 
 }

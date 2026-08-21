@@ -47,7 +47,7 @@ var EditorSetup = (function () {
 
     // 包成员补全 (pkg. 后提示)
     var GO_HINTS = {
-        'i': ['Start', 'Ping', 'Notice', 'Dial', 'DialTCP', 'Print', 'Println', 'ServerChan', 'QuarkCheckin'],
+        'i': ['Start', 'Ping', 'Notice', 'Dial', 'DialTCP', 'Print', 'Println', 'ServerChan', 'QuarkCheckin', 'GetPrices', 'Set', 'Get', 'Del'],
         'fmt': ['Print', 'Println', 'Printf', 'Sprint', 'Sprintf', 'Sprintln', 'Errorf', 'Fprint', 'Fprintln', 'Fprintf', 'Scan', 'Scanln', 'Scanf', 'Sscan', 'Sscanln', 'Sscanf'],
         'time': ['Now', 'Second', 'Minute', 'Hour', 'Millisecond', 'Microsecond', 'Nanosecond', 'Sleep', 'Since', 'Until', 'Parse', 'ParseDuration', 'Duration', 'Time', 'Ticker', 'Timer', 'Date', 'Unix', 'UnixNano', 'Format', 'Local', 'UTC'],
         'os': ['Args', 'Stdin', 'Stdout', 'Stderr', 'Getenv', 'Setenv', 'Exit', 'Open', 'Create', 'ReadFile', 'WriteFile', 'MkdirAll', 'Remove', 'RemoveAll', 'Stat', 'IsExist', 'IsNotExist', 'Hostname', 'Getwd'],
@@ -131,7 +131,11 @@ var EditorSetup = (function () {
             'Print': 'Print(args ...interface{})',
             'Println': 'Println(args ...interface{})',
             'ServerChan': 'ServerChan(title, msg string) error',
-            'QuarkCheckin': 'QuarkCheckin(vcode, sign, kps string) (string, error)'
+            'QuarkCheckin': 'QuarkCheckin(vcode, sign, kps string) (string, error)',
+            'GetPrices': 'GetPrices(code ...string) (map[string]float64, error)',
+            'Set': 'Set(key, value any, expiration ...time.Duration)',
+            'Get': 'Get(key any) (any, bool)',
+            'Del': 'Del(key any)'
         },
         'fmt': {
             'Print': 'Print(a ...any) (n int, err error)',
