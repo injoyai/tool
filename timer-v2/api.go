@@ -47,7 +47,7 @@ func _init(filename string) (err error) {
 	// xorm 默认 DatabaseTZ=time.UTC，导致 created 字段存 UTC 时间(比本地少 8 小时)，
 	// 改为本地时区，使 Log.CreatedAt 等时间字段存本地时间。
 	DB.SetTZDatabase(time.Local)
-	if err = DB.Sync2(new(Timer), new(Log)); err != nil {
+	if err = DB.Sync2(new(Timer), new(Log), new(Setting)); err != nil {
 		return err
 	}
 

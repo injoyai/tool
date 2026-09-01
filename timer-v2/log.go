@@ -50,6 +50,11 @@ func ExecWithLog(t *Timer) {
 		logs.Errorf("写入执行日志失败: %v", err)
 	}
 
+	// 执行失败时触发全局错误处理脚本(异步, 带任务ID/名称/错误信息)
+	if log.Status == "error" {
+		go onError(t.ID, t.Name, err.Error())
+	}
+
 	// 通过 WebSocket 推送通知
 	noticeWS(log.Status == "success", t.Name, log.Error)
 }
