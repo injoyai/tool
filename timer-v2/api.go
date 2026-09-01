@@ -152,6 +152,10 @@ func RunWithListener(ln net.Listener, filename string) error {
 		g.DELETE("/log", ClearLogHandler) //清除日志
 
 		g.ALL("/notice/ws", NoticeWS) //通知-websocket
+
+		g.GET("/setting/error_handler", GetErrorHandler)
+		g.PUT("/setting/error_handler", PutErrorHandler)
+		g.POST("/setting/error_handler/test", TestErrorHandler)
 	})
 	return s.RunListener(ln)
 }
@@ -315,4 +319,44 @@ func ClearLogHandler(c fbr.Ctx) {
 	err := ClearLogs(timerID)
 	c.CheckErr(err)
 	c.Succ(nil)
+}
+
+// GetErrorHandler 获取错误处理脚本内容
+func GetErrorHandler(c fbr.Ctx) {
+	c.Succ(getErrorHandlerScript())
+}
+
+// PutErrorHandler 保存错误处理脚本(保存即生效)
+func PutErrorHandler(c fbr.Ctx) {
+	req := struct {
+		Script string `json:"script"`
+	}{}
+	c.Parse(&req)
+	if err := setErrorHandlerScript(req.Script); err != nil {
+		c.CheckErr(err)
+		return
+	}
+	c.Succ(nil)
+}
+
+// TestErrorHandler 用模拟参数测试错误处理脚本
+func TestErrorHandler(c fbr.Ctx) {
+	req := struct {
+		Script string `json:"script"`
+	}{}
+	c.Parse(&req)
+	code := req.Script
+	if code == "" {
+		code = getErrorHandlerScript()
+	}
+	if code == "" {
+		c.JSON(map[string]interface{}{"code": 400, "msg": "脚本内容为空"})
+		return
+	}
+	result, err := Script.CallFunc(code, "OnError", "999", "测试任务", "测试错误信息")
+	if err != nil {
+		c.JSON(map[string]interface{}{"code": 500, "msg": err.Error()})
+		return
+	}
+	c.JSON(map[string]interface{}{"code": 200, "data": fmt.Sprint(result)})
 }
