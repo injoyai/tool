@@ -106,3 +106,44 @@ func main() {
 		t.Fatalf("执行 lib 符号脚本失败: %v", err)
 	}
 }
+
+// TestCallFunc_OnError 验证 CallFunc 能执行脚本并带参调用指定函数。
+func TestCallFunc_OnError(t *testing.T) {
+	s := newScriptEngine()
+	var gotID int64
+	var gotName, gotMsg string
+	s.SetFunc("Capture", func(id int64, name, msg string) {
+		gotID = id
+		gotName = name
+		gotMsg = msg
+	})
+
+	code := `package main
+
+import "i"
+
+func OnError(taskID int64, taskName, errMsg string) {
+	i.Capture(taskID, taskName, errMsg)
+}
+`
+	_, err := s.CallFunc(code, "OnError", "123", "测试任务", "出错啦")
+	if err != nil {
+		t.Fatalf("CallFunc 执行失败: %v", err)
+	}
+	if gotID != 123 || gotName != "测试任务" || gotMsg != "出错啦" {
+		t.Fatalf("参数传递异常, gotID=%d gotName=%q gotMsg=%q", gotID, gotName, gotMsg)
+	}
+}
+
+// TestCallFunc_NoFunc 脚本未定义目标函数时应报错。
+func TestCallFunc_NoFunc(t *testing.T) {
+	s := newScriptEngine()
+	code := `package main
+
+func main() {
+}
+`
+	if _, err := s.CallFunc(code, "OnError", "1", "n", "m"); err == nil {
+		t.Fatal("期望未定义函数时报错,但未报错")
+	}
+}

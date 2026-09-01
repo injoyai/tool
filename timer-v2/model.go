@@ -31,3 +31,9 @@ func (this *Timer) String() string {
 func (this *Timer) ExecText() string {
 	return fmt.Sprintf("[执行][%s][%02d:%s] %s", this.Cron, this.ID, this.Name, this.Content)
 }
+
+// Setting 通用 KV 配置(错误处理脚本等全局设置)
+type Setting struct {
+	Key   string `json:"key"   xorm:"pk"`
+	Value string `json:"value"`
+}

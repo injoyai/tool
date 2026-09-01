@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -113,6 +114,62 @@ func (s *scriptEngine) Exec(code string) (interface{}, error) {
 	}
 	if output != "" {
 		return output, nil
+	}
+	if v.IsValid() {
+		return v.Interface(), nil
+	}
+	return nil, nil
+}
+
+// CallFunc 执行脚本并调用其中名为 fn 的函数, args 均以 string 传入。
+// 用于错误处理: 先 Eval 完整脚本完成声明, 再 Eval "fn(int64(id), ...)" 完成带参调用。
+// args[0] 必须是十进制数字字符串, 转为 int64 传参; 其余按 string 传参。
+func (s *scriptEngine) CallFunc(code, fn string, args ...string) (interface{}, error) {
+	code = strings.TrimSpace(code)
+	if code == "" {
+		return nil, fmt.Errorf("脚本内容为空")
+	}
+	if len(args) == 0 {
+		return nil, fmt.Errorf("缺少函数参数")
+	}
+
+	// 构造调用表达式: fn(int64(123), "name", "msg")
+	// args[0] 必须是十进制数字字符串(调用方用 FormatInt 生成), 不能加引号
+	// (int64("123") 是非法 Go 表达式, 编译报错)
+	callArgs := make([]string, 0, len(args))
+	callArgs = append(callArgs, fmt.Sprintf("int64(%s)", args[0]))
+	for _, a := range args[1:] {
+		callArgs = append(callArgs, strconv.Quote(a))
+	}
+	expr := fmt.Sprintf("%s(%s)", fn, strings.Join(callArgs, ", "))
+
+	var buf bytes.Buffer
+	i := interp.New(interp.Options{
+		Stdout: &buf,
+		Stderr: &buf,
+	})
+	if err := i.Use(stdlib.Symbols); err != nil {
+		return nil, err
+	}
+	if err := i.Use(lib.Symbols); err != nil {
+		return nil, err
+	}
+	s.mu.RLock()
+	err := i.Use(s.symbols)
+	s.mu.RUnlock()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := i.Eval(code); err != nil {
+		return buf.String(), err
+	}
+	v, err := i.Eval(expr)
+	if err != nil {
+		return buf.String(), err
+	}
+	if buf.String() != "" {
+		return buf.String(), nil
 	}
 	if v.IsValid() {
 		return v.Interface(), nil
