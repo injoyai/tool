@@ -325,6 +325,10 @@
 
     // ===== Open Setting Modal =====
     async function openSettingModal() {
+        if (!settingEditor) {
+            notice('编辑器加载中,请稍后再试', 'error');
+            return;
+        }
         try {
             var script = await API.getErrorHandler();
             settingEditor.setValue(script || EditorSetup.ERROR_HANDLER_SCRIPT);
