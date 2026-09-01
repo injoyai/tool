@@ -80,6 +80,18 @@ var API = (function () {
             var url = '/api/log';
             if (timerId) url += '?timerId=' + timerId;
             return request(url, json('DELETE', {}));
+        },
+
+        getErrorHandler: function () {
+            return request('/api/setting/error_handler');
+        },
+
+        saveErrorHandler: function (script) {
+            return request('/api/setting/error_handler', json('PUT', { script: script }));
+        },
+
+        testErrorHandler: function (script) {
+            return request('/api/setting/error_handler/test', json('POST', { script: script }));
         }
     };
 })();

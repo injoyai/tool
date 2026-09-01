@@ -8,6 +8,16 @@ var EditorSetup = (function () {
         '    fmt.Println("hello timer")\n' +
         '}';
 
+    // 错误处理脚本默认模板
+    var ERROR_HANDLER_SCRIPT = '' +
+        'package main\n\n' +
+        'import "i"\n\n' +
+        '// 任务执行失败时被调用\n' +
+        '// taskID 稳定不变, taskName 可能被改名\n' +
+        'func OnError(taskID int64, taskName, errMsg string) {\n' +
+        '    i.ServerChan("任务失败: "+taskName, errMsg)\n' +
+        '}';
+
     // ===== 自动补全 =====
     // Go 关键字
     var GO_KEYWORDS = [
@@ -763,14 +773,20 @@ var EditorSetup = (function () {
                 theme: 'vs-dark'
             }, editorOpts));
 
+            var settingEditor = monaco.editor.create(document.getElementById('settingEditor'), Object.assign({
+                value: '',
+                theme: 'vs-dark'
+            }, editorOpts));
+
             if (typeof callback === 'function') {
-                callback({ addEditor: addEditor, editEditor: editEditor });
+                callback({ addEditor: addEditor, editEditor: editEditor, settingEditor: settingEditor });
             }
         });
     }
 
     return {
         init: init,
-        DEFAULT_SCRIPT: DEFAULT_SCRIPT
+        DEFAULT_SCRIPT: DEFAULT_SCRIPT,
+        ERROR_HANDLER_SCRIPT: ERROR_HANDLER_SCRIPT
     };
 })();

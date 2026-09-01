@@ -2,7 +2,7 @@
 
     var DEFAULT_SCRIPT = EditorSetup.DEFAULT_SCRIPT;
 
-    var addEditor, editEditor;
+    var addEditor, editEditor, settingEditor;
     var addModal, editModal;
 
     var TYPE_LABELS = {
@@ -323,6 +323,52 @@
         }
     }
 
+    // ===== Open Setting Modal =====
+    async function openSettingModal() {
+        try {
+            var script = await API.getErrorHandler();
+            settingEditor.setValue(script || EditorSetup.ERROR_HANDLER_SCRIPT);
+        } catch (e) {
+            notice(e.message || '加载设置失败', 'error');
+            settingEditor.setValue(EditorSetup.ERROR_HANDLER_SCRIPT);
+        }
+        document.getElementById('settingTestResult').style.display = 'none';
+        document.getElementById('settingModal').style.display = 'block';
+    }
+
+    // ===== Save Setting =====
+    async function saveSetting() {
+        try {
+            await API.saveErrorHandler(settingEditor.getValue());
+            notice('保存成功,已生效');
+            document.getElementById('settingModal').style.display = 'none';
+        } catch (e) {
+            notice(e.message || '保存失败', 'error');
+        }
+    }
+
+    // ===== Test Setting Script =====
+    async function testSettingScript() {
+        var btn = document.getElementById('testSettingScript');
+        var resultDiv = document.getElementById('settingTestResult');
+        btn.disabled = true;
+        btn.textContent = '执行中...';
+        resultDiv.style.display = 'none';
+        try {
+            var result = await API.testErrorHandler(settingEditor.getValue());
+            resultDiv.className = 'test-result success';
+            resultDiv.textContent = result || '执行成功';
+            resultDiv.style.display = 'block';
+        } catch (e) {
+            resultDiv.className = 'test-result error';
+            resultDiv.textContent = e.message || '执行失败';
+            resultDiv.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '测试执行';
+        }
+    }
+
     // ===== DOM Ready =====
     document.addEventListener('DOMContentLoaded', function () {
         addModal = document.getElementById('addModal');
@@ -333,6 +379,7 @@
         EditorSetup.init(function (editors) {
             addEditor = editors.addEditor;
             editEditor = editors.editEditor;
+            settingEditor = editors.settingEditor;
 
             // Load data after editors are ready
             refresh();
@@ -361,6 +408,18 @@
             logModal.style.display = 'none';
         };
 
+        // ===== Setting Modal =====
+        var settingModal = document.getElementById('settingModal');
+        var closeSetting = settingModal.getElementsByClassName('close')[0];
+
+        document.getElementById('openSettingModal').addEventListener('click', openSettingModal);
+        document.getElementById('saveSetting').addEventListener('click', saveSetting);
+        document.getElementById('testSettingScript').addEventListener('click', testSettingScript);
+
+        closeSetting.onclick = function () {
+            settingModal.style.display = 'none';
+        };
+
         window.onclick = function (event) {
             if (event.target === addModal) {
                 addModal.style.display = 'none';
@@ -370,6 +429,9 @@
             }
             if (event.target === logModal) {
                 logModal.style.display = 'none';
+            }
+            if (event.target === settingModal) {
+                settingModal.style.display = 'none';
             }
         };
 

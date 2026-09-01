@@ -19,7 +19,8 @@
     <div class="toolbar">
         <button id="openAddModal" class="btn-primary">+ 添加任务</button>
         <button id="refreshAll" class="btn-secondary">&#x21bb; 刷新</button>
-        <button id="openLogModal" class="btn-secondary" style="margin-left:auto">执行日志</button>
+        <button id="openSettingModal" class="btn-secondary" style="margin-left:auto">&#9881; 设置</button>
+        <button id="openLogModal" class="btn-secondary" style="margin-left:8px">执行日志</button>
     </div>
 
     <div class="table-wrapper">
@@ -181,6 +182,21 @@
                 <tbody id="logTableBody"></tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- Setting Modal -->
+<div id="settingModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+        <span class="close">&times;</span>
+        <h2>设置 - 全局错误处理</h2>
+        <div class="form-group">
+            <label>错误处理脚本 (任务执行失败时调用 OnError(taskID, taskName, errMsg))</label>
+            <div id="settingEditor" class="editor-container"></div>
+        </div>
+        <button id="testSettingScript" class="btn-secondary" style="margin-top: 16px; width: 100%;">测试执行</button>
+        <div id="settingTestResult" class="test-result" style="display:none;"></div>
+        <button id="saveSetting" class="btn-submit">保存</button>
     </div>
 </div>
 
