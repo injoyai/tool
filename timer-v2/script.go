@@ -122,7 +122,8 @@ func (s *scriptEngine) Exec(code string) (interface{}, error) {
 }
 
 // CallFunc 执行脚本并调用其中名为 fn 的函数, args 均以 string 传入。
-// 用于错误处理: 先 Eval 完整脚本完成声明, 再 Eval "fn(int64(id), ...)" 完成带参调用。
+// 用于错误处理: 先 Eval 完整脚本完成声明(注意: 若脚本含 func main 会在此被执行,
+// 错误处理脚本应只包含 OnError 等函数声明), 再 Eval "fn(int64(id), ...)" 完成带参调用。
 // args[0] 必须是十进制数字字符串, 转为 int64 传参; 其余按 string 传参。
 func (s *scriptEngine) CallFunc(code, fn string, args ...string) (interface{}, error) {
 	code = strings.TrimSpace(code)
@@ -162,11 +163,17 @@ func (s *scriptEngine) CallFunc(code, fn string, args ...string) (interface{}, e
 	}
 
 	if _, err := i.Eval(code); err != nil {
-		return buf.String(), err
+		if output := buf.String(); output != "" {
+			return output, err
+		}
+		return nil, err
 	}
 	v, err := i.Eval(expr)
 	if err != nil {
-		return buf.String(), err
+		if output := buf.String(); output != "" {
+			return output, err
+		}
+		return nil, err
 	}
 	if buf.String() != "" {
 		return buf.String(), nil
