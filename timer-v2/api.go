@@ -326,7 +326,7 @@ func GetErrorHandler(c fbr.Ctx) {
 	c.Succ(getErrorHandlerScript())
 }
 
-// PutErrorHandler 保存错误处理脚本(保存即生效)
+// PutErrorHandler 保存错误处理脚本(保存即生效; 传空脚本即停用错误处理)
 func PutErrorHandler(c fbr.Ctx) {
 	req := struct {
 		Script string `json:"script"`
@@ -358,5 +358,9 @@ func TestErrorHandler(c fbr.Ctx) {
 		c.JSON(map[string]interface{}{"code": 500, "msg": err.Error()})
 		return
 	}
-	c.JSON(map[string]interface{}{"code": 200, "data": fmt.Sprint(result)})
+	data := conv.String(result)
+	if len(data) > 2000 {
+		data = data[:2000] + "..."
+	}
+	c.JSON(map[string]interface{}{"code": 200, "data": data})
 }
