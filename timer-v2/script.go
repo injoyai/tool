@@ -179,7 +179,12 @@ func (s *scriptEngine) CallFunc(code, fn string, args ...string) (interface{}, e
 		return buf.String(), nil
 	}
 	if v.IsValid() {
-		return v.Interface(), nil
+		result := v.Interface()
+		// void 函数经 yaegi 返回 *interface{}(指向 nil), 归一化为 nil, 避免 fmt.Sprint 输出指针地址
+		if p, ok := result.(*interface{}); ok && p != nil && *p == nil {
+			result = nil
+		}
+		return result, nil
 	}
 	return nil, nil
 }

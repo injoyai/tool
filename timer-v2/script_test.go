@@ -147,3 +147,23 @@ func main() {
 		t.Fatal("期望未定义函数时报错,但未报错")
 	}
 }
+
+// TestCallFunc_VoidOnSuccess void 函数成功执行后应返回 nil(而非解释器内部指针)。
+func TestCallFunc_VoidOnSuccess(t *testing.T) {
+	s := newScriptEngine()
+	code := `package main
+
+var called bool
+
+func OnError(taskID int64, taskName, errMsg string) {
+	called = true
+}
+`
+	result, err := s.CallFunc(code, "OnError", "1", "n", "m")
+	if err != nil {
+		t.Fatalf("CallFunc 执行失败: %v", err)
+	}
+	if result != nil {
+		t.Fatalf("期望 void 函数返回 nil, got %#v", result)
+	}
+}
