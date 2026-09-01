@@ -12,6 +12,8 @@ timer-v2/
 ├── executor.go         # 多类型任务执行器(script/http/shell/webhook)
 ├── script.go           # yaegi Go 脚本引擎(i 包) + stdout 捕获
 ├── log.go              # 执行日志模型 + ExecWithLog + WebSocket 通知
+├── error_handler.go    # 全局错误处理脚本(onError + Setting 读写缓存)
+├── error_handler_test.go # 错误处理测试
 ├── script_test.go      # 脚本引擎测试
 ├── auth_test.go        # token 派生测试
 ├── web/                # 前端项目目录(embed 到二进制)
@@ -99,6 +101,15 @@ go build ./cmd/server && server.exe    # 访问 http://localhost:8078/
 - **WebSocket 并发写坑(已修复)**: `noticeWS` 在 `WS.Range` 中调 `conn.WriteJSON`，多个 cron 任务并发执行时多 goroutine 同时写同一连接，触发 fasthttp/websocket 的 `concurrent write to websocket connection` panic。cron 在独立 goroutine 运行，`WithRecover` 不覆盖，会直接崩溃整个进程。修复：`WS` 值类型改为 `*wsClient`(封装 `conn + sync.Mutex`)，`noticeWS` 写前加锁序列化。注意 `maps.Generic` 本身线程安全(RWMutex)，问题仅在 ws 写操作
 - **时区坑(已修复)**: xorm 默认 `DatabaseTZ=time.UTC`，`created` 字段(如 `Log.CreatedAt`，string->Varchar)按 `time.Now().In(UTC)` 格式化存储，导致比本地少 8 小时。修复：`_init()` 中 `DB.SetTZDatabase(time.Local)`。注意 `xorms.Engine` 是嵌入 `*xorm.Engine` 的薄包装，`SetTZDatabase` 直接作用于底层引擎。仅影响新写入，历史记录仍是 UTC。`TZLocation`(app 时区)默认已是 `time.Local`，无需改
 - **列名坑(重要)**: `sqlite.NewXorm` -> `xorms.NewSqlite` -> `WithSyncField` 用 `core.SameMapper`，列名 = 字段名(PascalCase)。Log 表实际列名为 `ID/TimerID/Name/Type/Status/Result/Error/CreatedAt`，**不是** snake_case。写 `Where` 时必须用 PascalCase(如 `Where("CreatedAt < ?", x)`、`Where("TimerID = ?", id)`)。已修复历史遗留的 `timer_id` 误用(原 `GetLogs`/`ClearLogs` 按 timerId 过滤/清除会报 `no such column`)
+
+### 全局错误处理 (error_handler.go)
+- 任务执行失败(ExecWithLog, cron/立即执行路径; 手动"测试执行"不触发)时异步调用 `onError(taskID, taskName, errMsg)`(log.go 失败分支, `go onError(...)` 在 noticeWS 之前)
+- 错误处理脚本存 Setting 表(key=error_handler_script)，进程内双检锁缓存，Web 设置页(工具栏 ⚙ 按钮)编辑，保存即生效；传空脚本即停用
+- 脚本为完整 Go 程序，必须定义 `OnError(taskID int64, taskName, errMsg string)`；taskID 稳定(改名不影响)，可配合 i.Set/i.Get 做失败计数
+- `scriptEngine.CallFunc(code, fn, args...)`: Eval 完整脚本声明后 Eval `OnError(int64(123), "name", "msg")` 带参调用；**args[0] 必须是数字字符串**(内部拼 `int64(...)`)，其余 strconv.Quote 转义；void 函数返回值已归一化为 nil(避免 *interface{} 指针地址进日志)；**注意: 若脚本含 func main，首次 Eval 会执行它**——错误处理脚本只应包含函数声明
+- 处理脚本自身失败仅写 Log 表(Type=error_handler) + logs.Errorf，**不递归触发**；脚本为空时 onError 静默跳过；CallFunc 无超时控制，脚本死循环会泄漏 goroutine(设计上列为非目标)
+- API: GET/PUT /api/setting/error_handler, POST /api/setting/error_handler/test(模拟参数 999/测试任务/测试错误信息；请求 script 为空时回退测试已保存脚本)
+- Setting 表为通用 KV(xorm pk=Key, PascalCase 列名)，后续全局配置可复用
 
 ### 路由参数 (关键易错)
 **gofiber 中 `c.Get(key)` 取的是请求头，取路由参数必须用 `c.Params("*")`！**
