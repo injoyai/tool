@@ -11,11 +11,11 @@ var EditorSetup = (function () {
     // 错误处理脚本默认模板
     var ERROR_HANDLER_SCRIPT = '' +
         'package main\n\n' +
-        'import "i"\n\n' +
+        'import "fmt"\n\n' +
         '// 任务执行失败时被调用\n' +
         '// taskID 稳定不变, taskName 可能被改名\n' +
         'func OnError(taskID int64, taskName, errMsg string) {\n' +
-        '    i.ServerChan("任务失败: "+taskName, errMsg)\n' +
+        '    fmt.Println("任务失败: "+taskName, errMsg)\n' +
         '}';
 
     // ===== 自动补全 =====
