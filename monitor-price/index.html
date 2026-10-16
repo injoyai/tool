@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>监听价格</title>
+    <style>
+        :root {
+            --gold: #daa949;
+            --gold-bright: #f0c966;
+            --gold-dim: #8a6d2f;
+            --bg-deep: #0a0e16;
+            --bg-panel: #121826;
+            --bg-card: #161e2f;
+            --bg-card-hover: #1b2437;
+            --bg-input: #0d1320;
+            --border-color: #232e44;
+            --border-strong: #34405c;
+            --text-color: #e8ecf4;
+            --text-secondary: #8b96ab;
+            --text-faint: #5c677d;
+            --up-color: #ff5b57;
+            --down-color: #2ec2a2;
+            --danger-color: #ff6b6b;
+            --success-color: #2ec2a2;
+            --radius: 12px;
+            --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+            --glow-gold: 0 0 0 3px rgba(218, 169, 73, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-color);
+            margin: 0;
+            padding: 14px;
+            line-height: 1.35;
+            font-size: 13px;
+            overflow-y: auto;
+            background-image:
+                radial-gradient(900px 480px at 85% -10%, rgba(218, 169, 73, 0.14), transparent 60%),
+                radial-gradient(700px 420px at -10% 110%, rgba(52, 90, 170, 0.16), transparent 60%),
+                linear-gradient(rgba(35, 46, 68, 0.35) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(35, 46, 68, 0.35) 1px, transparent 1px);
+            background-size: auto, auto, 26px 26px, 26px 26px;
+            background-attachment: fixed;
+        }
+
+        /* 顶部金色细线 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            z-index: 10;
+            opacity: 0.85;
+        }
+
+        ::-webkit-scrollbar {
+            width: 9px;
+            height: 9px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a3550;
+            border-radius: 6px;
+            border: 2px solid var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #39465f6e;
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 20px 22px 24px;
+            background: linear-gradient(180deg, rgba(22, 30, 47, 0.92), rgba(16, 22, 34, 0.95));
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(8px);
+        }
+
+        h1 {
+            text-align: center;
+            margin: 2px 0 16px;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: transparent;
+            background: linear-gradient(120deg, #f5d98b 0%, var(--gold) 45%, #9a7b3a 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            position: relative;
+        }
+
+        /* 标题下的小蜡烛图装饰 */
+        h1::after {
+            content: "";
+            display: block;
+            width: 46px;
+            height: 2px;
+            margin: 8px auto 0;
+            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+        }
+
+        .config-header {
+            background: var(--bg-card);
+            padding: 10px 14px;
+            border-radius: var(--radius);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            transition: border-color 0.25s ease;
+        }
+
+        .config-header:focus-within {
+            border-color: var(--gold-dim);
+        }
+
+        .config-header label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        #interval {
+            width: 84px;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            color: var(--text-color);
+            background: var(--bg-input);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #interval:focus {
+            border-color: var(--gold);
+            box-shadow: var(--glow-gold);
+        }
+
+        #interval::-webkit-outer-spin-button,
+        #interval::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #rules {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .rule {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 14px;
+            background: linear-gradient(180deg, var(--bg-card), var(--bg-panel));
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            position: relative;
+            transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            animation: ruleIn 0.35s ease both;
+        }
+
+        .rule::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 12px;
+            bottom: 12px;
+            width: 3px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, var(--gold-bright), var(--gold-dim));
+            opacity: 0.9;
+        }
+
+        @keyframes ruleIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rule:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .rule.disabled {
+            opacity: 0.55;
+            filter: grayscale(1);
+        }
+
+        .rule.disabled::before {
+            background: #46536e;
+        }
+
+        .rule.disabled .condition-group {
+            visibility: hidden;
+        }
+
+        .code-group {
+            grid-column: 1;
+        }
+
+        .price-group {
+            grid-column: 2;
+        }
+
+        .status-group {
+            grid-column: 3;
+        }
+
+        .condition-group {
+            grid-column: 4;
+        }
+
+        .deleteRule {
+            grid-column: 5;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            color: var(--text-faint);
+            margin-bottom: 6px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 7px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+            background: var(--bg-input);
+            color: var(--text-color);
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="number"] {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: var(--gold);
+            box-shadow: var(--glow-gold);
+        }
+
+        input[type="text"]::placeholder,
+        input[type="number"]::placeholder {
+            color: var(--text-faint);
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 26px;
+            background-image:
+                linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+                linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+            background-position:
+                calc(100% - 13px) 55%,
+                calc(100% - 9px) 55%;
+            background-size: 4px 4px, 4px 4px;
+            background-repeat: no-repeat;
+            cursor: pointer;
+        }
+
+        select:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Toggle Switch */
+        .switch-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .switch-group label {
+            font-size: 12px;
+            color: var(--text-faint);
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+            margin: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #33405c;
+            transition: background-color 0.3s ease;
+            border-radius: 34px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #c6cdda;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, var(--gold-bright), var(--gold-dim));
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+            background-color: #fff;
+        }
+
+        input:focus-visible + .slider {
+            box-shadow: var(--glow-gold);
+        }
+
+        /* Buttons */
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        button.main-btn {
+            padding: 9px 22px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-family: inherit;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, background-color 0.2s;
+            position: relative;
+        }
+
+        #addRule {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        #addRule:hover {
+            color: var(--text-color);
+            border-color: var(--border-strong);
+            background: var(--bg-card-hover);
+            transform: translateY(-1px);
+        }
+
+        #addRule:active {
+            transform: translateY(0);
+        }
+
+        #submit {
+            background: linear-gradient(135deg, var(--gold-bright), var(--gold) 55%, var(--gold-dim));
+            color: #1c1406;
+            box-shadow: 0 6px 18px rgba(218, 169, 73, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        #submit:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(218, 169, 73, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        #submit:active {
+            transform: translateY(0);
+            filter: brightness(0.96);
+        }
+
+        .deleteRule {
+            background: transparent;
+            color: var(--text-faint);
+            border: 1px solid transparent;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1;
+            margin-top: 22px;
+        }
+
+        .deleteRule:hover {
+            background: rgba(255, 107, 107, 0.12);
+            color: var(--danger-color);
+            border-color: rgba(255, 107, 107, 0.35);
+            transform: rotate(90deg);
+        }
+
+        .toast {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 9999;
+            padding: 10px 18px 10px 14px;
+            border-radius: 10px;
+            color: #fff;
+            background: linear-gradient(135deg, rgba(46, 194, 162, 0.95), rgba(24, 140, 116, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            opacity: 0;
+            transform: translateY(-10px) scale(0.96);
+            transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast::before {
+            content: "✓";
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.95), rgba(196, 58, 68, 0.95));
+        }
+
+        .toast.error::before {
+            content: "×";
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+
+            .container {
+                padding: 16px;
+                border-radius: 12px;
+            }
+
+            .rule {
+                grid-template-columns: 1fr;
+                gap: 14px;
+                padding: 12px;
+            }
+
+            .deleteRule {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                margin-top: 0;
+            }
+
+            .switch-group {
+                flex-direction: row;
+                justify-content: space-between;
+                width: 100%;
+                padding: 5px 0;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            button.main-btn {
+                width: 100%;
+                padding: 11px 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>监听价格</h1>
+        
+        <div class="config-header">
+            <label for="interval">监听间隔(秒):</label>
+            <input type="number" id="interval" value="10" min="1" required>
+        </div>
+
+        <div id="rules"></div>
+
+        <div class="actions">
+            <button id="addRule" class="main-btn">添加规则</button>
+            <button id="submit" class="main-btn">提交配置</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let toastTimer = null;
+
+        function showToast(text, type = 'success') {
+            const el = document.getElementById('toast');
+            if (!el) return;
+            el.textContent = text;
+            el.className = `toast ${type === 'error' ? 'error' : ''} show`;
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                el.classList.remove('show');
+            }, 2000);
+        }
+
+        // 初始化界面
+        function initialize() {
+            const configStr = getConfig();
+            configStr.then(function (config) {
+                document.getElementById('interval').value = config.interval;
+                config.rule.forEach(rule => {
+                    addRule(rule.code, rule.price, rule.greater, rule.enable);
+                });
+            })
+        }
+
+        // 添加规则的函数
+        function addRule(code = "", price = 0, greater = true, enable = true) {
+            const ruleDiv = document.createElement('div');
+            ruleDiv.className = 'rule';
+            
+            ruleDiv.innerHTML = `
+                <div class="input-group code-group">
+                    <label>代码</label>
+                    <input type="text" class="code" value="${code}" placeholder="如: sh600519" required>
+                </div>
+                <div class="input-group price-group">
+                    <label>价格</label>
+                    <input type="number" class="price" step="0.01" value="${price}" placeholder="目标价格" required>
+                </div>
+                <div class="switch-group status-group">
+                    <label>状态</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="enable" ${enable ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch-group condition-group">
+                    <label>条件</label>
+                    <select class="greater">
+                        <option value="true" ${greater ? 'selected' : ''}>≥（大于等于）</option>
+                        <option value="false" ${greater ? '' : 'selected'}>≤（小于等于）</option>
+                    </select>
+                </div>
+                <button class="deleteRule" title="删除规则">×</button>
+            `;
+            document.getElementById('rules').appendChild(ruleDiv);
+
+            const enableCheck = ruleDiv.querySelector('.enable');
+            const greaterSelect = ruleDiv.querySelector('.greater');
+
+            const updateEnableUI = () => {
+                ruleDiv.classList.toggle('disabled', !enableCheck.checked);
+                greaterSelect.disabled = !enableCheck.checked;
+            };
+
+            updateEnableUI();
+
+            enableCheck.addEventListener('change', () => {
+                updateEnableUI();
+            });
+
+            // 为删除按钮添加事件监听器
+            ruleDiv.querySelector('.deleteRule').addEventListener('click', function() {
+                ruleDiv.remove(); // 删除对应的规则
+            });
+        }
+
+        document.getElementById('addRule').addEventListener('click', function() {
+            addRule(); // 添加空白规则
+        });
+
+        document.getElementById('submit').addEventListener('click', function() {
+            const interval = document.getElementById('interval').value;
+            const rules = Array.from(document.querySelectorAll('.rule')).map(rule => ({
+                code: rule.querySelector('.code').value,
+                price: parseFloat(rule.querySelector('.price').value),
+                greater: rule.querySelector('.greater').value === 'true',
+                enable: rule.querySelector('.enable').checked
+            }));
+            const config = { interval: parseInt(interval), rule: rules };
+            console.log(JSON.stringify(config));
+            try {
+                Promise.resolve(setConfig(config)).then(() => showToast('提交成功')).catch(() => showToast('提交失败', 'error'));
+            } catch (e) {
+                showToast('提交失败', 'error');
+            }
+        });
+
+        // 页面加载时初始化
+        //window.onload = initialize;
+    </script>
+</body>
+</html>

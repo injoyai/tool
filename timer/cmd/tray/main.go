@@ -1,21 +1,29 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"net"
+
 	"github.com/injoyai/conv/cfg"
-	"github.com/injoyai/goutil/notice"
+	"github.com/injoyai/goutil/oss"
 	"github.com/injoyai/goutil/oss/tray"
-	"github.com/injoyai/ios"
-	"github.com/injoyai/ios/client"
-	"github.com/injoyai/ios/client/dial"
-	"github.com/injoyai/logs"
 	"github.com/injoyai/lorca"
+	"github.com/injoyai/tool/timer"
 )
 
+func init() {
+	cfg.WithFile(oss.UserInjoyDir("/timer/config/config.yaml"))
+}
+
 func main() {
-	host := cfg.GetString("host", "127.0.0.1:8080")
-	go listen(fmt.Sprintf("ws://%s/api/notice/ws", host))
+	db := oss.UserInjoyDir("/timer/database/timer.db")
+	// 系统自动分配空闲端口,tray 直接持有 listener 获知实际端口
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		panic(err)
+	}
+	port := ln.Addr().(*net.TCPAddr).Port
+	go timer.RunWithListener(ln, db)
 	tray.Run(
 		tray.WithIco(IcoTimer),
 		tray.WithHint("定时任务"),
@@ -23,9 +31,9 @@ func main() {
 			x := s.AddMenu().SetName("配置").SetIcon(IcoMenuTimer)
 			x.OnClick(func(m *tray.Menu) {
 				lorca.Run(&lorca.Config{
-					Width:  930,
-					Height: 680,
-					Index:  host,
+					Width:  1080,
+					Height: 940,
+					Index:  fmt.Sprintf("http://localhost:%d", port),
 				})
 			})
 		},
@@ -33,18 +41,4 @@ func main() {
 		tray.WithSeparator(),
 		tray.WithExit(),
 	)
-}
-
-func listen(url string) {
-	dial.RedialWebsocket(url, func(c *client.Client) {
-		c.OnDealMessage = func(c *client.Client, msg ios.Acker) {
-			m := &notice.Message{}
-			if err := json.Unmarshal(msg.Payload(), m); err != nil {
-				logs.Err(err)
-				return
-			}
-			err := notice.DefaultWindows.Publish(m)
-			logs.PrintErr(err)
-		}
-	})
 }

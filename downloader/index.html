@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能下载器</title>
+    <style>
+        :root {
+            --primary-color: #1890ff;
+            --danger-color: #ff4d4f;
+            --success-color: #52c41a;
+            --text-color: #333;
+            --text-secondary: #666;
+            --border-color: #d9d9d9;
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--container-bg);
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--text-color);
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #fff;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .progress-section {
+            margin-bottom: 24px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .progress-percentage {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-start {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: #40a9ff;
+        }
+
+        .btn-stop {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #ff7875;
+        }
+
+        .btn:disabled {
+            background: #f5f5f5;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .log-section {
+            margin-top: 24px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 24px;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .log-title {
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .clear-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .clear-btn:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .log-window {
+            background: #fafafa;
+            color: #333;
+            padding: 12px;
+            border-radius: 4px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            border: 1px solid var(--border-color);
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+        }
+
+        .log-info { color: var(--primary-color); }
+        .log-success { color: var(--success-color); }
+        .log-warning { color: #faad14; }
+        .log-error { color: var(--danger-color); }
+
+        /* 代理设置样式 */
+        .proxy-section {
+            margin-bottom: 24px;
+            background: #fafafa;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .proxy-header {
+            padding: 12px 16px;
+            background: #fafafa;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-color);
+            user-select: none;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        /* 移除之前的 checkmark 样式，使用原生或简单样式 */
+        .checkmark {
+            display: none;
+        }
+        
+        .proxy-inputs {
+            padding: 16px;
+        }
+
+        .proxy-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .proxy-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .proxy-input, .proxy-select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .proxy-input:focus, .proxy-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .proxy-port {
+            flex: 0.5;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready { background: var(--success-color); }
+        .status-downloading { background: #faad14; }
+        .status-error { background: var(--danger-color); }
+
+        .download-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .proxy-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>智能下载器</h1>
+            <p>高效、美观、易用的文件下载工具</p>
+        </div>
+
+        <div class="input-group">
+            <label class="input-label" for="urlInput">
+                <span class="status-indicator status-ready"></span>
+                资源地址
+            </label>
+            <input type="text" id="urlInput" class="url-input" placeholder="请输入要下载的文件URL地址 (支持 HTTP/HTTPS/HLS/M3U8)..." />
+        </div>
+
+        <div class="proxy-section">
+            <div class="proxy-header">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="proxyToggle">
+                    <span class="checkmark"></span>
+                    使用代理服务器
+                </label>
+            </div>
+            <div class="proxy-inputs" id="proxyInputs" style="display: none;">
+                <div class="proxy-row">
+                    <input type="text" id="proxyHost" class="proxy-input" placeholder="代理主机 (如: 127.0.0.1)" />
+                    <input type="number" id="proxyPort" class="proxy-input proxy-port" placeholder="端口" min="1" max="65535" />
+                </div>
+                <div class="proxy-row">
+                    <select id="proxyType" class="proxy-select">
+                        <option value="http">HTTP代理</option>
+                        <option value="https">HTTPS代理</option>
+                        <option value="socks4">SOCKS4代理</option>
+                        <option value="socks5">SOCKS5代理</option>
+                    </select>
+                </div>
+                <div class="proxy-row">
+                    <input type="text" id="proxyUser" class="proxy-input" placeholder="用户名 (可选)" />
+                    <input type="password" id="proxyPass" class="proxy-input" placeholder="密码 (可选)" />
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-info">
+                <span class="progress-label">下载进度</span>
+                <span class="progress-percentage" id="progressText">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="download-info" id="downloadInfo" style="display: none;">
+                <span id="fileSize">文件大小: --</span>
+                <span id="downloadSpeed">下载速度: --</span>
+                <span id="timeRemaining">剩余时间: --</span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="startBtn" class="btn btn-start">开始下载</button>
+            <button id="stopBtn" class="btn btn-stop" disabled>停止下载</button>
+        </div>
+
+        <div class="log-section">
+            <div class="log-header">
+                <span class="log-title">下载日志</span>
+                <button id="clearLogBtn" class="clear-btn">清空日志</button>
+            </div>
+            <div class="log-window" id="logWindow">
+                <div class="log-entry log-info">[系统] 下载器已就绪，请输入下载地址...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SmartDownloader {
+            constructor() {
+            this.urlInput = document.getElementById('urlInput');
+            this.startBtn = document.getElementById('startBtn');
+            this.stopBtn = document.getElementById('stopBtn');
+            this.progressFill = document.getElementById('progressFill');
+            this.progressText = document.getElementById('progressText');
+            this.logWindow = document.getElementById('logWindow');
+            this.clearLogBtn = document.getElementById('clearLogBtn');
+            this.downloadInfo = document.getElementById('downloadInfo');
+            this.fileSize = document.getElementById('fileSize');
+            this.downloadSpeed = document.getElementById('downloadSpeed');
+            this.timeRemaining = document.getElementById('timeRemaining');
+            
+            // 代理相关元素
+            this.proxyToggle = document.getElementById('proxyToggle');
+            this.proxyInputs = document.getElementById('proxyInputs');
+            this.proxyHost = document.getElementById('proxyHost');
+            this.proxyPort = document.getElementById('proxyPort');
+            this.proxyType = document.getElementById('proxyType');
+            this.proxyUser = document.getElementById('proxyUser');
+            this.proxyPass = document.getElementById('proxyPass');
+            
+            this.isDownloading = false;
+            this.simulationInterval = null;
+            this.currentProgress = 0;
+            
+            this.initEventListeners();
+        }
+
+            initEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startDownload());
+                this.stopBtn.addEventListener('click', () => this.stopDownload());
+                this.clearLogBtn.addEventListener('click', () => this.clearLog());
+                this.urlInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !this.isDownloading) {
+                        this.startDownload();
+                    }
+                });
+                
+                // 代理开关事件
+                this.proxyToggle.addEventListener('change', () => {
+                    if (this.proxyToggle.checked) {
+                        this.proxyInputs.style.display = 'block';
+                        this.addLog('代理服务器已启用', 'info');
+                    } else {
+                        this.proxyInputs.style.display = 'none';
+                        this.addLog('代理服务器已禁用', 'info');
+                    }
+                });
+            }
+
+            addLog(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry log-${type}`;
+                logEntry.innerHTML = `[${timestamp}] ${message}`;
+                
+                this.logWindow.appendChild(logEntry);
+                this.logWindow.scrollTop = this.logWindow.scrollHeight;
+            }
+
+            clearLog() {
+                this.logWindow.innerHTML = '<div class="log-entry log-info">[系统] 日志已清空</div>';
+            }
+
+            updateProgress(progress) {
+                this.currentProgress = Math.min(100, Math.max(0, progress));
+                this.progressFill.style.width = `${this.currentProgress}%`;
+                this.progressText.textContent = `${Math.round(this.currentProgress)}%`;
+                
+                if (this.currentProgress === 100) {
+                    this.completeDownload();
+                }
+            }
+
+            updateDownloadInfo(fileSize, speed, timeLeft) {
+                this.fileSize.textContent = `文件大小: ${fileSize}`;
+                this.downloadSpeed.textContent = `下载速度: ${speed}`;
+                this.timeRemaining.textContent = `剩余时间: ${timeLeft}`;
+            }
+
+            async startDownload() {
+                const url = this.urlInput.value.trim();
+                
+                if (!url) {
+                    this.addLog('请输入有效的下载地址', 'warning');
+                    this.urlInput.focus();
+                    return;
+                }
+
+                if (!this.isValidUrl(url)) {
+                    this.addLog('请输入有效的URL地址', 'error');
+                    this.urlInput.focus();
+                    return;
+                }
+
+                const isHls = this.isHlsUrl(url);
+                const proxyConfig = this.getProxyConfig();
+                
+                this.isDownloading = true;
+                this.currentProgress = 0;
+                
+                this.startBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.urlInput.disabled = true;
+                
+                this.downloadInfo.style.display = 'flex';
+                
+                if (isHls) {
+                    this.addLog('检测到HLS/M3U8流格式，暂不支持流媒体下载，尝试作为普通文件下载...', 'warning');
+                }
+                
+                try {
+                    await window.goStartDownload(url, JSON.stringify(proxyConfig));
+                } catch (e) {
+                    this.addLog('启动下载失败: ' + e, 'error');
+                    this.stopDownload();
+                }
+            }
+
+            async stopDownload() {
+                try {
+                    await window.goStopDownload();
+                } catch (e) {
+                    console.error(e);
+                }
+                
+                this.isDownloading = false;
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.urlInput.disabled = false;
+                
+                this.addLog('下载已停止', 'warning');
+                this.updateStatusIndicator('ready');
+            }
+
+            completeDownload() {
+                this.isDownloading = false;
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.urlInput.disabled = false;
+                
+                this.addLog('下载完成！', 'success');
+                this.updateStatusIndicator('ready');
+            }
+
+            updateStatusIndicator(status) {
+                const indicator = document.querySelector('.status-indicator');
+                indicator.className = `status-indicator status-${status}`;
+            }
+
+            isValidUrl(string) {
+                try {
+                    new URL(string);
+                    return true;
+                } catch (_) {
+                    return false;
+                }
+            }
+
+            isHlsUrl(url) {
+                return url.includes('.m3u8') || url.includes('hls') || url.includes('stream');
+            }
+
+            getProxyConfig() {
+                if (!this.proxyToggle.checked) {
+                    return { enabled: false };
+                }
+
+                const host = this.proxyHost.value.trim();
+                const port = parseInt(this.proxyPort.value);
+                const type = this.proxyType.value;
+                const user = this.proxyUser.value.trim();
+                const pass = this.proxyPass.value;
+
+                if (!host || !port) {
+                    this.addLog('代理设置不完整，请填写主机和端口', 'warning');
+                    return { enabled: false };
+                }
+
+                return {
+                    enabled: true,
+                    host: host,
+                    port: port,
+                    type: type,
+                    user: user,
+                    pass: pass
+                };
+            }
+        }
+
+        // 初始化下载器
+        document.addEventListener('DOMContentLoaded', () => {
+            window.downloader = new SmartDownloader();
+        });
+
+        // Lorca接口函数 - 供Go后端调用
+        window.lorcaInterface = {
+            // 设置下载地址
+            setDownloadUrl: function(url) {
+                if (window.downloader) {
+                    window.downloader.urlInput.value = url;
+                    return true;
+                }
+                return false;
+            },
+
+            // 开始下载
+            startDownload: function() {
+                if (window.downloader && !window.downloader.isDownloading) {
+                    window.downloader.startDownload();
+                    return true;
+                }
+                return false;
+            },
+
+            // 停止下载
+            stopDownload: function() {
+                if (window.downloader && window.downloader.isDownloading) {
+                    window.downloader.stopDownload();
+                    return true;
+                }
+                return false;
+            },
+
+            // 设置代理配置
+            setProxyConfig: function(config) {
+                if (window.downloader) {
+                    if (config.enabled) {
+                        window.downloader.proxyToggle.checked = true;
+                        window.downloader.proxyHost.value = config.host || '';
+                        window.downloader.proxyPort.value = config.port || '';
+                        window.downloader.proxyType.value = config.type || 'http';
+                        window.downloader.proxyUser.value = config.user || '';
+                        window.downloader.proxyPass.value = config.pass || '';
+                        window.downloader.proxyInputs.style.display = 'block';
+                    } else {
+                        window.downloader.proxyToggle.checked = false;
+                        window.downloader.proxyInputs.style.display = 'none';
+                    }
+                    return true;
+                }
+                return false;
+            },
+
+            // 获取当前状态
+            getStatus: function() {
+                if (window.downloader) {
+                    return {
+                        isDownloading: window.downloader.isDownloading,
+                        progress: window.downloader.currentProgress,
+                        url: window.downloader.urlInput.value,
+                        proxyEnabled: window.downloader.proxyToggle.checked
+                    };
+                }
+                return null;
+            },
+
+            // 添加日志
+            addLog: function(message, type = 'info') {
+                if (window.downloader) {
+                    window.downloader.addLog(message, type);
+                    return true;
+                }
+                return false;
+            },
+
+            // 清空日志
+            clearLog: function() {
+                if (window.downloader) {
+                    window.downloader.clearLog();
+                    return true;
+                }
+                return false;
+            },
+
+            // 获取代理配置
+            getProxyConfig: function() {
+                if (window.downloader) {
+                    return window.downloader.getProxyConfig();
+                }
+                return null;
+            },
+
+            // 检查是否为HLS
+            isHlsUrl: function(url) {
+                if (window.downloader) {
+                    return window.downloader.isHlsUrl(url);
+                }
+                return false;
+            }
+        };
+
+        // 添加一些页面加载动画
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

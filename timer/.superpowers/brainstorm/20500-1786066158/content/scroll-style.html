@@ -1,0 +1,87 @@
+<h2>滚动条样式 -- 选哪种？</h2>
+<p class="subtitle">当前是系统默认滚动条，在暗色主题下很突兀。下面 3 种都适配暗色主题，拖动框内内容可看效果。</p>
+
+<div class="cards">
+
+  <!-- Option A: Amber -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#0f0f1a">
+      <div class="sb-a" style="height:120px;overflow-y:auto;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:11px;color:#94a3b8">
+        <div style="margin-bottom:6px">日志行 1 · 成功</div>
+        <div style="margin-bottom:6px">日志行 2 · 失败</div>
+        <div style="margin-bottom:6px">日志行 3 · 成功</div>
+        <div style="margin-bottom:6px">日志行 4 · 成功</div>
+        <div style="margin-bottom:6px">日志行 5 · 失败</div>
+        <div style="margin-bottom:6px">日志行 6 · 成功</div>
+        <div style="margin-bottom:6px">日志行 7 · 成功</div>
+        <div style="margin-bottom:6px">日志行 8 · 成功</div>
+        <div>日志行 9 · 失败</div>
+      </div>
+      <style>
+        .sb-a::-webkit-scrollbar{width:8px}
+        .sb-a::-webkit-scrollbar-track{background:#1a1a2e;border-radius:4px}
+        .sb-a::-webkit-scrollbar-thumb{background:#f59e0b;border-radius:4px}
+        .sb-a::-webkit-scrollbar-thumb:hover{background:#d97706}
+      </style>
+    </div>
+    <div class="card-body">
+      <h3>A · 琥珀细条</h3>
+      <p>8px 宽圆角，拇指用主色琥珀，hover 加深。与主题主色一致，最醒目。</p>
+    </div>
+  </div>
+
+  <!-- Option B: Teal -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#0f0f1a">
+      <div class="sb-b" style="height:120px;overflow-y:auto;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:11px;color:#94a3b8">
+        <div style="margin-bottom:6px">日志行 1 · 成功</div>
+        <div style="margin-bottom:6px">日志行 2 · 失败</div>
+        <div style="margin-bottom:6px">日志行 3 · 成功</div>
+        <div style="margin-bottom:6px">日志行 4 · 成功</div>
+        <div style="margin-bottom:6px">日志行 5 · 失败</div>
+        <div style="margin-bottom:6px">日志行 6 · 成功</div>
+        <div style="margin-bottom:6px">日志行 7 · 成功</div>
+        <div style="margin-bottom:6px">日志行 8 · 成功</div>
+        <div>日志行 9 · 失败</div>
+      </div>
+      <style>
+        .sb-b::-webkit-scrollbar{width:8px}
+        .sb-b::-webkit-scrollbar-track{background:#1a1a2e;border-radius:4px}
+        .sb-b::-webkit-scrollbar-thumb{background:#14b8a6;border-radius:4px}
+        .sb-b::-webkit-scrollbar-thumb:hover{background:#0d9488}
+      </style>
+    </div>
+    <div class="card-body">
+      <h3>B · 青色细条</h3>
+      <p>8px 宽圆角，拇指用辅色青。与代码/cron 字段色调呼应，偏冷调。</p>
+    </div>
+  </div>
+
+  <!-- Option C: Minimal -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#0f0f1a">
+      <div class="sb-c" style="height:120px;overflow-y:auto;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:11px;color:#94a3b8">
+        <div style="margin-bottom:6px">日志行 1 · 成功</div>
+        <div style="margin-bottom:6px">日志行 2 · 失败</div>
+        <div style="margin-bottom:6px">日志行 3 · 成功</div>
+        <div style="margin-bottom:6px">日志行 4 · 成功</div>
+        <div style="margin-bottom:6px">日志行 5 · 失败</div>
+        <div style="margin-bottom:6px">日志行 6 · 成功</div>
+        <div style="margin-bottom:6px">日志行 7 · 成功</div>
+        <div style="margin-bottom:6px">日志行 8 · 成功</div>
+        <div>日志行 9 · 失败</div>
+      </div>
+      <style>
+        .sb-c::-webkit-scrollbar{width:6px}
+        .sb-c::-webkit-scrollbar-track{background:transparent}
+        .sb-c::-webkit-scrollbar-thumb{background:#2a2a4a;border-radius:3px}
+        .sb-c::-webkit-scrollbar-thumb:hover{background:#3a3a5a}
+      </style>
+    </div>
+    <div class="card-body">
+      <h3>C · 极简隐形</h3>
+      <p>6px 超窄，轨道透明，拇指用低调深灰，hover 才微亮。最不抢眼，几乎"隐形"。</p>
+    </div>
+  </div>
+
+</div>

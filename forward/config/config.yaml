@@ -1,0 +1,11 @@
+#管理界面的端口
+port: 8078
+
+#数据存储位置
+database: ./data/forward.db
+
+#是否启用认证,暂时未实现
+auth: false
+
+#认证的密码,暂时未实现
+password:

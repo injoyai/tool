@@ -1,0 +1,77 @@
+<h2>执行日志放右边 —— 选哪种布局？</h2>
+<p class="subtitle">当前日志是点按钮弹出的弹窗。你希望"放右边"是下面哪种形式？点击你倾向的方案。</p>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f0f1a">
+      <div style="display:flex;gap:6px;height:150px">
+        <div style="flex:2;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:10px;color:#94a3b8">
+          <div style="color:#f59e0b;font-weight:600;margin-bottom:6px">任务表</div>
+          <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px"></div>
+          <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px"></div>
+          <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px"></div>
+          <div style="background:#16213e;height:14px;border-radius:3px"></div>
+        </div>
+        <div style="flex:1;background:#1a1a2e;border:1px solid #14b8a6;border-radius:6px;padding:8px;font-size:10px;color:#14b8a6">
+          <div style="font-weight:600;margin-bottom:6px">日志(常驻)</div>
+          <div style="background:#16213e;height:12px;border-radius:3px;margin-bottom:3px"></div>
+          <div style="background:#16213e;height:12px;border-radius:3px;margin-bottom:3px"></div>
+          <div style="background:#16213e;height:12px;border-radius:3px;margin-bottom:3px"></div>
+          <div style="background:#16213e;height:12px;border-radius:3px;margin-bottom:3px"></div>
+          <div style="background:#16213e;height:12px;border-radius:3px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · 固定分栏（常驻）</h3>
+      <p>左侧任务表 + 右侧日志面板始终可见。可实时看执行结果，不用点开。空间被永久占用。</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f0f1a">
+      <div style="position:relative;height:150px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:10px;color:#94a3b8">
+        <div style="color:#f59e0b;font-weight:600;margin-bottom:6px">任务表（全宽）</div>
+        <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px;width:80%"></div>
+        <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px;width:80%"></div>
+        <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px;width:80%"></div>
+        <div style="position:absolute;right:6px;top:6px;bottom:6px;width:38%;background:#1a2a4a;border:1px solid #f59e0b;border-radius:6px;padding:8px;box-shadow:-4px 0 16px rgba(0,0,0,0.5)">
+          <div style="color:#f59e0b;font-weight:600;margin-bottom:6px">日志抽屉</div>
+          <div style="background:#0f0f1a;height:12px;border-radius:3px;margin-bottom:3px"></div>
+          <div style="background:#0f0f1a;height:12px;border-radius:3px;margin-bottom:3px"></div>
+          <div style="background:#0f0f1a;height:12px;border-radius:3px;margin-bottom:3px"></div>
+          <div style="background:#0f0f1a;height:12px;border-radius:3px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · 右侧抽屉（浮层）</h3>
+      <p>点"执行日志"从右侧滑出抽屉，覆盖在表格上方。不占常驻空间，关闭后表格恢复全宽。</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f0f1a">
+      <div style="display:flex;gap:6px;height:150px">
+        <div style="flex:1;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:10px;color:#94a3b8">
+          <div style="color:#f59e0b;font-weight:600;margin-bottom:6px">任务表</div>
+          <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px"></div>
+          <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px"></div>
+          <div style="background:#16213e;height:14px;border-radius:3px;margin-bottom:4px"></div>
+          <div style="background:#16213e;height:14px;border-radius:3px"></div>
+        </div>
+        <div style="width:26px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#f59e0b;font-size:14px">◀</div>
+      </div>
+      <div style="text-align:center;font-size:9px;color:#64748b;margin-top:6px">收起状态</div>
+    </div>
+    <div class="card-body">
+      <h3>C · 可折叠侧栏</h3>
+      <p>右侧日志面板可一键收起/展开。展开时分栏显示，收起后只剩一个窄条按钮，兼顾常驻与空间。</p>
+    </div>
+  </div>
+
+</div>

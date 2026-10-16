@@ -1,0 +1,24 @@
+customOpen:
+    "3": "3"
+    "4": "4"
+    "5": "5"
+downloadDir: ""
+downloadNoticeEnable: "on"
+downloadNoticeText: ""
+downloadVoiceEnable: "on"
+downloadVoiceText: ""
+float: "0"
+int: "0"
+memoHost: ""
+memoToken: ""
+nickName: aaa
+proxy: ""
+proxyIgnore: ""
+resource: ""
+select: '[object Object],[object Object],[object Object]'
+uploadMinio:
+    access: "2"
+    bucket: "5"
+    endpoint: "1"
+    rename: false
+    secret: "3"

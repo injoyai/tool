@@ -1,0 +1,1 @@
+SESSION_DIR=e:\GOPATH\src\github.com\injoyai\tool\timer-v2\.superpowers\brainstorm\20500-1786066158
