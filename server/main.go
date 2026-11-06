@@ -84,7 +84,7 @@ func main() {
 			})
 			if cfg.GetBool("menu_default", true) {
 				s.AddMenu().SetName("全局配置").SetIcon(IconSetting).OnClick(func(m *tray.Menu) {
-					shell.Start("i global gui")
+					shell.Start("i config gui")
 				})
 				s.AddMenu().SetName("定时任务").SetIcon(IconTimer).OnClick(func(m *tray.Menu) {
 					shell.Start("i open timer")
@@ -132,7 +132,7 @@ func main() {
 			mTDX.SetName("TDX  : " + conv.String(cfg.GetInt("tdx.port"))).OnClick(func(m *tray.Menu) {
 				x := cfg.WithFile(Filename).(*conv.Map).Set("tdx.enable", !m.Checked())
 				oss.New(Filename, x.String())
-				udp.Enable(!m.Checked())
+				tdx.Enable(!m.Checked())
 				mTCP.SetChecked(!m.Checked())
 			})
 
